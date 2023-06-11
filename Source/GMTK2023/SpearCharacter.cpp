@@ -10,6 +10,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "SpearActor.h"
+#include <Engine/Engine.h>
 
 
 ASpearCharacter::ASpearCharacter()
@@ -87,6 +89,8 @@ void ASpearCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASpearCharacter::Look);
 
+		//Thowing
+		EnhancedInputComponent->BindAction(ThrowAction, ETriggerEvent::Triggered, this, &ASpearCharacter::Throw);
 	}
 
 }
@@ -126,3 +130,22 @@ void ASpearCharacter::Look(const FInputActionValue& Value)
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
 }
+
+void ASpearCharacter::Throw(const FInputActionValue& Value)
+{
+	// Spawn the blueprint actor with the subclass of ASpearActor
+	if (SpearActorBlueprint)
+	{
+		FVector SpawnLocation = GetActorLocation() + FVector(0.0f, 0.0f, 150.0f); // Adjust the Z-axis offset as needed
+		FRotator SpawnRotation = GetActorRotation() + FRotator(0.0f, 90.0f, 0.0f); // Rotate by 90 degrees around the Z-axis
+		ASpearActor* NewSpear = GetWorld()->SpawnActor<ASpearActor>(SpearActorBlueprint, SpawnLocation, SpawnRotation);
+
+		if (NewSpear)
+		{
+			NewSpear->FallSpeed = 20.0f;
+			NewSpear->ThrowStrength = 50.0f;
+			NewSpear->bIsThrown = true;
+		}
+	}
+}
+

@@ -22,7 +22,10 @@ protected:
 
     // The hitbox component for the spear
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spear")
-    class UCapsuleComponent* Hitbox;
+    class UCapsuleComponent* SpearCollision;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spear")
+    class UCapsuleComponent* SpearTipHitbox;
 
 protected:
 	// Called when the game starts or when spawned
@@ -31,4 +34,13 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Throw")
+    bool bIsThrown = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Throw")
+    float ThrowStrength = 10.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Throw")
+	float FallSpeed = 10.0f;
 };

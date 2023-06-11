@@ -4,31 +4,35 @@
 #include "SpearActor.h"
 #include <Components/CapsuleComponent.h>
 #include <Components/StaticMeshComponent.h>
+#include <Components/TimelineComponent.h>
+#include "Engine/World.h"
+#include <Components/SceneComponent.h>
 
 
 // Sets default values
 ASpearActor::ASpearActor()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Create the hit box component and attach it to the root component
-	Hitbox = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Hitbox"));
-	RootComponent = Hitbox;
+	USceneComponent* RootSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootSceneComponent"));
+	RootComponent = RootSceneComponent;
 
-	// Create the spear mesh component
+	SpearCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Hitbox"));
+	SpearCollision->SetupAttachment(RootSceneComponent);
+
 	SpearMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SpearMesh"));
+	SpearMesh->SetupAttachment(SpearCollision);
 
-	// Attach SpearMesh to the Hitbox component
-	SpearMesh->SetupAttachment(Hitbox);
-
+	SpearTipHitbox = CreateDefaultSubobject<UCapsuleComponent>(TEXT("SpearTipHitbox"));
+	SpearTipHitbox->SetupAttachment(SpearCollision);
 }
 
 // Called when the game starts or when spawned
 void ASpearActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 // Called every frame
@@ -36,5 +40,34 @@ void ASpearActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-}
+	if (bIsThrown)
+	{
+		FVector CurrentLocation = GetActorLocation();
+		FVector ForwardVector = GetActorForwardVector();
 
+		// Move the spear in the direction it is facing at a constant speed
+		CurrentLocation += ForwardVector * ThrowStrength * DeltaTime;
+
+		// Apply gravity effect by reducing the Z coordinate of the spear's location
+		CurrentLocation.Z -= FallSpeed * DeltaTime;
+
+		// Update the spear's location
+		SetActorLocation(CurrentLocation);
+
+		// Perform raycast to check if the SpearTipHitbox touches something
+		FHitResult HitResult;
+		FVector StartLocation = GetActorLocation();
+		FVector EndLocation = StartLocation + ForwardVector * ThrowStrength * DeltaTime;
+
+		if (GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Visibility))
+		{
+			// The SpearTipHitbox touched something, stop moving and get stuck in the object it hit
+			bIsThrown = false;
+			SetActorLocation(HitResult.Location);
+
+			// Calculate the new rotation perpendicular to the wall that was hit
+			FRotator NewRotation = HitResult.Normal.Rotation() + FRotator(0.0f, 90.0f, 0.0f);
+			SetActorRotation(NewRotation);
+		}
+	}
+}

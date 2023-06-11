@@ -37,6 +37,12 @@ class GMTK2023_API ASpearCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* ThrowAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Spear")
+	TSubclassOf<class ASpearActor> SpearActorBlueprint;
+
 public:
 	ASpearCharacter();
 	
@@ -48,6 +54,8 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
+
+	void Throw(const FInputActionValue& Value);
 			
 
 protected:
