@@ -39,8 +39,8 @@ public:
     bool bIsThrown = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Throw")
-    float ThrowStrength = 10.0f;
+    float ThrowStrength = 2000.0f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Throw")
-	float FallSpeed = 10.0f;
+	float FallSpeed = 100.0f;
 };

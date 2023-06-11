@@ -137,13 +137,13 @@ void ASpearCharacter::Throw(const FInputActionValue& Value)
 	if (SpearActorBlueprint)
 	{
 		FVector SpawnLocation = GetActorLocation() + FVector(0.0f, 0.0f, 150.0f); // Adjust the Z-axis offset as needed
-		FRotator SpawnRotation = GetActorRotation() + FRotator(0.0f, 90.0f, 0.0f); // Rotate by 90 degrees around the Z-axis
+		FRotator SpawnRotation = GetActorRotation(); // Rotate by 90 degrees around the Z-axis
 		ASpearActor* NewSpear = GetWorld()->SpawnActor<ASpearActor>(SpearActorBlueprint, SpawnLocation, SpawnRotation);
 
 		if (NewSpear)
 		{
-			NewSpear->FallSpeed = 20.0f;
-			NewSpear->ThrowStrength = 50.0f;
+			// NewSpear->FallSpeed = 20.0f;
+			// NewSpear->ThrowStrength = 50.0f;
 			NewSpear->bIsThrown = true;
 		}
 	}

@@ -7,6 +7,7 @@
 #include <Components/TimelineComponent.h>
 #include "Engine/World.h"
 #include <Components/SceneComponent.h>
+#include <Engine/HitResult.h>
 
 
 // Sets default values
@@ -38,36 +39,46 @@ void ASpearActor::BeginPlay()
 // Called every frame
 void ASpearActor::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
+    Super::Tick(DeltaTime);
 
-	if (bIsThrown)
-	{
-		FVector CurrentLocation = GetActorLocation();
-		FVector ForwardVector = GetActorForwardVector();
+    if (bIsThrown)
+    {
+        FVector CurrentLocation = GetActorLocation();
+        FVector ForwardVector = GetActorForwardVector();
 
-		// Move the spear in the direction it is facing at a constant speed
-		CurrentLocation += ForwardVector * ThrowStrength * DeltaTime;
+        // Move the spear in the direction it is facing at a constant speed
+        CurrentLocation += ForwardVector * ThrowStrength * DeltaTime;
 
-		// Apply gravity effect by reducing the Z coordinate of the spear's location
-		CurrentLocation.Z -= FallSpeed * DeltaTime;
+        // Apply gravity effect by reducing the Z coordinate of the spear's location
+        CurrentLocation.Z -= FallSpeed * DeltaTime;
 
-		// Update the spear's location
-		SetActorLocation(CurrentLocation);
+        // Update the spear's location
+        SetActorLocation(CurrentLocation);
 
-		// Perform raycast to check if the SpearTipHitbox touches something
-		FHitResult HitResult;
-		FVector StartLocation = GetActorLocation();
-		FVector EndLocation = StartLocation + ForwardVector * ThrowStrength * DeltaTime;
+        // Perform raycast to check if the SpearTipHitbox touches something
+        FHitResult HitResult;
+        FVector StartLocation = GetActorLocation();
+        FVector EndLocation = StartLocation + ForwardVector * ThrowStrength * DeltaTime;
 
-		if (GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Visibility))
-		{
-			// The SpearTipHitbox touched something, stop moving and get stuck in the object it hit
-			bIsThrown = false;
-			SetActorLocation(HitResult.Location);
+        // Ignore collisions with the owner of the spear
+        FCollisionQueryParams CollisionParams;
+        CollisionParams.AddIgnoredActor(this);
 
-			// Calculate the new rotation perpendicular to the wall that was hit
-			FRotator NewRotation = HitResult.Normal.Rotation() + FRotator(0.0f, 90.0f, 0.0f);
-			SetActorRotation(NewRotation);
-		}
-	}
+        if (GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Visibility, CollisionParams))
+        {
+            // The SpearTipHitbox touched something, stop moving and get stuck in the object it hit
+            bIsThrown = false;
+            SetActorLocation(HitResult.Location);
+
+            // Calculate the new rotation perpendicular to the wall that was hit
+            FRotator NewRotation = HitResult.Normal.Rotation() + FRotator(0.0f, 90.0f, 0.0f);
+            SetActorRotation(NewRotation);
+
+            // Print the collided actor's name to the screen
+            FString CollidedActorName = HitResult.GetActor() != nullptr ? HitResult.GetActor()->GetName() : TEXT("Unknown Actor");
+            GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Collided with: %s"), *CollidedActorName));
+        }
+    }
 }
+
+
