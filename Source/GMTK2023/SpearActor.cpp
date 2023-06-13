@@ -70,13 +70,22 @@ void ASpearActor::Tick(float DeltaTime)
             bIsThrown = false;
             SetActorLocation(HitResult.Location);
 
-            // Calculate the new rotation perpendicular to the wall that was hit
-            FRotator NewRotation = HitResult.Normal.Rotation() + FRotator(0.0f, 90.0f, 0.0f);
+            FVector WallNormal = HitResult.Normal;
+
+            // Rotate Actor to look into the hit location
+            FRotator NewRotation = WallNormal.Rotation();
+            NewRotation.Pitch = -NewRotation.Pitch;
+            NewRotation.Yaw += 180.0f;
             SetActorRotation(NewRotation);
 
+            // Calculate the new location to adjust the spear into the wall
+            FVector WallOffset = WallNormal * 80.0f;
+            FVector NewLocation = HitResult.Location + WallOffset;
+            SetActorLocation(NewLocation);
+
             // Print the collided actor's name to the screen
-            FString CollidedActorName = HitResult.GetActor() != nullptr ? HitResult.GetActor()->GetName() : TEXT("Unknown Actor");
-            GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Collided with: %s"), *CollidedActorName));
+            // FString CollidedActorName = HitResult.GetActor() != nullptr ? HitResult.GetActor()->GetName() : TEXT("Unknown Actor");
+            // GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Collided with: %s"), *CollidedActorName));
         }
     }
 }

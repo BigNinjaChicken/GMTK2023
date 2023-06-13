@@ -17,6 +17,9 @@ class GMTK2023_API ASpearCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class USpringArmComponent* SpearSpringArm;
+
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
@@ -43,6 +46,9 @@ class GMTK2023_API ASpearCharacter : public ACharacter
 	UPROPERTY(EditDefaultsOnly, Category = "Spear")
 	TSubclassOf<class ASpearActor> SpearActorBlueprint;
 
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<class UUserWidget> CrosshairWidgetBlueprint;
+
 public:
 	ASpearCharacter();
 	
@@ -56,7 +62,13 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 	void Throw(const FInputActionValue& Value);
-			
+	void ThrowOngoing(const FInputActionValue& Value);
+	void ThrowComplete(const FInputActionValue& Value);
+
+	void MoveCameraBoomBack();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Spear")
+	ASpearActor* NewSpear;
 
 protected:
 	// APawn interface

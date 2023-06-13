@@ -12,6 +12,9 @@
 #include "EnhancedInputSubsystems.h"
 #include "SpearActor.h"
 #include <Engine/Engine.h>
+#include <GameFramework/Actor.h>
+#include "Math/UnrealMathUtility.h"
+#include <UMG/Public/Blueprint/UserWidget.h>
 
 
 ASpearCharacter::ASpearCharacter()
@@ -42,6 +45,9 @@ ASpearCharacter::ASpearCharacter()
 	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 
+	SpearSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpearSpringArm"));
+	SpearSpringArm->SetupAttachment(RootComponent);
+
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
@@ -69,6 +75,16 @@ void ASpearCharacter::BeginPlay()
 	// Switch input mode back to game input
 	FInputModeGameOnly InputMode;
 	PlayerController->SetInputMode(InputMode);
+
+	if (IsLocallyControlled())
+	{
+		// Create widget
+		UUserWidget* Widget = CreateWidget<UUserWidget>(GetWorld(), CrosshairWidgetBlueprint);
+		if (Widget)
+		{
+			Widget->AddToViewport();
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -90,9 +106,10 @@ void ASpearCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASpearCharacter::Look);
 
 		//Thowing
-		EnhancedInputComponent->BindAction(ThrowAction, ETriggerEvent::Triggered, this, &ASpearCharacter::Throw);
+		EnhancedInputComponent->BindAction(ThrowAction, ETriggerEvent::Started, this, &ASpearCharacter::Throw);
+		EnhancedInputComponent->BindAction(ThrowAction, ETriggerEvent::Ongoing, this, &ASpearCharacter::ThrowOngoing);
+		EnhancedInputComponent->BindAction(ThrowAction, ETriggerEvent::Completed, this, &ASpearCharacter::ThrowComplete);
 	}
-
 }
 
 void ASpearCharacter::Move(const FInputActionValue& Value)
@@ -137,15 +154,112 @@ void ASpearCharacter::Throw(const FInputActionValue& Value)
 	if (SpearActorBlueprint)
 	{
 		FVector SpawnLocation = GetActorLocation() + FVector(0.0f, 0.0f, 150.0f); // Adjust the Z-axis offset as needed
-		FRotator SpawnRotation = GetActorRotation(); // Rotate by 90 degrees around the Z-axis
-		ASpearActor* NewSpear = GetWorld()->SpawnActor<ASpearActor>(SpearActorBlueprint, SpawnLocation, SpawnRotation);
+		FRotator SpawnRotation = GetActorRotation();
+		NewSpear = GetWorld()->SpawnActor<ASpearActor>(SpearActorBlueprint, SpawnLocation, SpawnRotation);
 
 		if (NewSpear)
 		{
-			// NewSpear->FallSpeed = 20.0f;
-			// NewSpear->ThrowStrength = 50.0f;
-			NewSpear->bIsThrown = true;
+			// Attach the spear to the character
+			FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepWorld, false);
+			NewSpear->AttachToComponent(SpearSpringArm, AttachmentRules);
 		}
 	}
 }
 
+void ASpearCharacter::ThrowOngoing(const FInputActionValue& Value)
+{
+	if (NewSpear && CameraBoom)
+	{
+		APlayerController* PlayerController = Cast<APlayerController>(Controller);
+		int32 ViewportSizeX, ViewportSizeY;
+		PlayerController->GetViewportSize(ViewportSizeX, ViewportSizeY);
+
+		FVector2D ScreenPosition(ViewportSizeX * 0.5f, ViewportSizeY * 0.5f);
+
+		FVector WorldLocation, WorldDirection;
+		PlayerController->DeprojectScreenPositionToWorld(ScreenPosition.X, ScreenPosition.Y, WorldLocation, WorldDirection);
+
+		FHitResult HitResult;
+		FCollisionQueryParams Params;
+		Params.bTraceComplex = true;
+		Params.AddIgnoredActor(this);
+		Params.AddIgnoredActor(NewSpear);
+
+		FVector SpearTargetLocation;
+		if (GetWorld()->LineTraceSingleByChannel(HitResult, WorldLocation, WorldLocation + (WorldDirection * 10000.0f), ECC_Visibility, Params))
+		{
+			SpearTargetLocation = HitResult.Location;
+		}
+		else
+		{
+			SpearTargetLocation = WorldLocation + (WorldDirection * 10000.0f);
+		}
+
+		float DeltaTime = GetWorld()->GetDeltaSeconds();
+
+		// Nudge Camera to Right
+		FVector CameraBoomLocation = CameraBoom->GetComponentLocation();
+		FVector RightVector = CameraBoom->GetRightVector();
+		float MaxDistance = 75.0f;
+		float NudgeSpeed = 1.0f;
+		CameraBoom->TargetOffset = FMath::Lerp(CameraBoom->TargetOffset, MaxDistance, DeltaTime * NudgeSpeed);
+
+		// Calculate rotation interpolation
+		float RotationLerpSpeed = 100.0f;
+		FRotator NewRotation = FRotationMatrix::MakeFromX(SpearTargetLocation - GetActorLocation()).Rotator();
+		FRotator CurrentRotation = NewSpear->GetActorRotation();
+		FRotator LerpedRotation = FMath::Lerp(CurrentRotation, NewRotation, DeltaTime * RotationLerpSpeed);
+		NewSpear->SetActorRotation(LerpedRotation);
+	}
+}
+
+
+void ASpearCharacter::ThrowComplete(const FInputActionValue& Value)
+{
+	// Detach the spear from the character
+	NewSpear->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	NewSpear->bIsThrown = true;
+
+	MoveCameraBoomBack();
+
+	// Add a debug message to the screen
+	// FString DebugMessage = TEXT("Throw complete!");
+	// GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, DebugMessage);
+}
+
+void ASpearCharacter::MoveCameraBoomBack()
+{
+	if (NewSpear && CameraBoom)
+	{
+		// Move the camera back to its starting position
+		float CameraMoveSpeed = 500.0f; // Adjust the speed as needed
+		float DeltaTime = GetWorld()->GetDeltaSeconds();
+
+		FVector CurrentCameraLocation = CameraBoom->TargetOffset;
+		FVector TargetCameraLocation = FVector::ZeroVector;
+
+		// Calculate the movement direction
+		FVector CameraMoveDirection = TargetCameraLocation - CurrentCameraLocation;
+		CameraMoveDirection.Normalize();
+
+		// Calculate the distance to move based on the camera move speed and delta time
+		float DistanceToMove = CameraMoveSpeed * DeltaTime;
+
+		// Move the camera towards the target location
+		if ((TargetCameraLocation - CurrentCameraLocation).SizeSquared() > DistanceToMove * DistanceToMove)
+		{
+			FVector NewCameraLocation = CurrentCameraLocation + CameraMoveDirection * DistanceToMove;
+			CameraBoom->TargetOffset = NewCameraLocation;
+		}
+		else
+		{
+			CameraBoom->TargetOffset = TargetCameraLocation;
+		}
+
+		// If the camera is not yet at the target location, mark the function to be called again in the next frame
+		if ((TargetCameraLocation - CurrentCameraLocation).SizeSquared() > SMALL_NUMBER)
+		{
+			GetWorldTimerManager().SetTimerForNextTick([this] { MoveCameraBoomBack(); });
+		}
+	}
+}
