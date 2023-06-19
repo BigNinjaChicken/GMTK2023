@@ -64,11 +64,19 @@ protected:
 	void Throw(const FInputActionValue& Value);
 	void ThrowOngoing(const FInputActionValue& Value);
 	void ThrowComplete(const FInputActionValue& Value);
-
 	void MoveCameraBoomBack();
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Spear")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spear")
 	ASpearActor* NewSpear;
+	UPROPERTY(EditAnywhere, Category = "Spear")
+	FVector SpearSpawnOffset = FVector(0.0f, 0.0f, 150.0f);
+	UPROPERTY(EditAnywhere, Category = "Spear")
+	float RaycastMaxDistance = 10000.0f;
+	UPROPERTY(EditAnywhere, Category = "Spear")
+	float CameraMoveSpeed = 500.0f;
+	UPROPERTY(EditAnywhere, Category = "Spear")
+	float CameraNudgeMaxDistance = 75.0f;
+	UPROPERTY(EditAnywhere, Category = "Spear")
+	float CameraNudgeSpeed = 1.0f;
 
 protected:
 	// APawn interface

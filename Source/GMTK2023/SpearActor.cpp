@@ -8,7 +8,7 @@
 #include "Engine/World.h"
 #include <Components/SceneComponent.h>
 #include <Engine/HitResult.h>
-
+#include "Components/BoxComponent.h"
 
 // Sets default values
 ASpearActor::ASpearActor()
@@ -16,10 +16,10 @@ ASpearActor::ASpearActor()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	USceneComponent* RootSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootSceneComponent"));
+	RootSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootSceneComponent"));
 	RootComponent = RootSceneComponent;
 
-	SpearCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Hitbox"));
+	SpearCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("Hitbox"));
 	SpearCollision->SetupAttachment(RootSceneComponent);
 
 	SpearMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SpearMesh"));
@@ -79,7 +79,7 @@ void ASpearActor::Tick(float DeltaTime)
             SetActorRotation(NewRotation);
 
             // Calculate the new location to adjust the spear into the wall
-            FVector WallOffset = WallNormal * 80.0f;
+            FVector WallOffset = WallNormal * OffsetFromWall;
             FVector NewLocation = HitResult.Location + WallOffset;
             SetActorLocation(NewLocation);
 

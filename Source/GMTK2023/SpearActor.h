@@ -16,13 +16,16 @@ public:
 	ASpearActor();
 
 protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spear")
+	class USceneComponent* RootSceneComponent;
+
     // The static mesh component for the spear
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spear")
     class UStaticMeshComponent* SpearMesh;
 
     // The hitbox component for the spear
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spear")
-    class UCapsuleComponent* SpearCollision;
+    class UBoxComponent* SpearCollision;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spear")
     class UCapsuleComponent* SpearTipHitbox;
@@ -43,4 +46,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Throw")
 	float FallSpeed = 100.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Throw")
+	float OffsetFromWall = 80.0f;
 };
