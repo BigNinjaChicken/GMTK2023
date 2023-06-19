@@ -279,7 +279,7 @@ void ASpearCharacter::MoveCameraBoomBack()
 		CameraMoveDirection.Normalize();
 
 		// Calculate the distance to move based on the camera move speed and delta time
-		float DistanceToMove = CameraMoveSpeed * DeltaTime;
+		float DistanceToMove = CameraMoveBackSpeed * DeltaTime;
 
 		// Move the camera towards the target location
 		if ((TargetCameraLocation - CurrentCameraLocation).SizeSquared() > DistanceToMove * DistanceToMove)

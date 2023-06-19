@@ -72,7 +72,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Spear")
 	float RaycastMaxDistance = 10000.0f;
 	UPROPERTY(EditAnywhere, Category = "Spear")
-	float CameraMoveSpeed = 500.0f;
+	float CameraMoveBackSpeed = 500.0f;
 	UPROPERTY(EditAnywhere, Category = "Spear")
 	float CameraNudgeMaxDistance = 75.0f;
 	UPROPERTY(EditAnywhere, Category = "Spear")
