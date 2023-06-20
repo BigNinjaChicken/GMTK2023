@@ -24,6 +24,12 @@ ASpearActivatedPlatform::ASpearActivatedPlatform()
 void ASpearActivatedPlatform::BeginPlay()
 {
 	Super::BeginPlay();
+
+	FVector ActorLocation = GetActorLocation();
+	for (FVector& Location : PlatformLocations)
+	{
+		Location += ActorLocation;
+	}
 }
 
 // Called every frame
@@ -33,7 +39,6 @@ void ASpearActivatedPlatform::Tick(float DeltaTime)
 
 	if (!IsTouchingSpearActor())
 	{
-		StopMovement();
 		return;
 	}
 	MoveToNextLocation(DeltaTime);
@@ -51,34 +56,24 @@ void ASpearActivatedPlatform::MoveToNextLocation(float DeltaTime)
 {
 	if (PlatformLocations.Num() <= 0)
 	{
-		StopMovement();
 		return;
 	}
 
 	ParticleSystemComponent->Activate();
 
 	FVector CurrentLocation = GetActorLocation();
-	FVector TargetLocation = GetActorLocation() + PlatformLocations[TargetLocationIndex];
+	FVector TargetLocation = PlatformLocations[TargetLocationIndex];
 
-	// Calculate the direction and distance to move
 	FVector Direction = (TargetLocation - CurrentLocation).GetSafeNormal();
 	float Distance = FVector::Distance(CurrentLocation, TargetLocation);
 
-	// Move the platform towards the target location
 	SetActorLocation(CurrentLocation + Direction * MovementSpeed * DeltaTime);
 
-	// Check if the platform has reached the target location
-	if (Distance <= MovementSpeed * DeltaTime)
+	if (FVector::PointsAreNear(CurrentLocation, TargetLocation, 1.0f))
 	{
-		SetActorLocation(TargetLocation);
-		StopMovement();
+		bCountingUp = (TargetLocationIndex >= PlatformLocations.Num() - 1) ? false : (TargetLocationIndex <= 0) ? true : bCountingUp;
+		TargetLocationIndex = bCountingUp ? TargetLocationIndex + 1 : TargetLocationIndex - 1;
 	}
-}
 
-void ASpearActivatedPlatform::StopMovement()
-{
-	ParticleSystemComponent->Deactivate();
 
-	// Slowly halt the platform instead of stopping instantly
-	TargetLocationIndex = (TargetLocationIndex + 1) % PlatformLocations.Num();
 }

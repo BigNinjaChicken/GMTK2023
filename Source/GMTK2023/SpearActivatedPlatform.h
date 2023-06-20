@@ -16,24 +16,25 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 protected:
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UStaticMeshComponent* PlatformMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UParticleSystemComponent* ParticleSystemComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement", meta = (MakeEditWidget = true))
 	TArray<FVector> PlatformLocations;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	float MovementSpeed = 100.0f;
 
+
 private:
-	bool bIsMoving = false;
 	int32 TargetLocationIndex = 0;
+	bool bCountingUp = true;
 
 	bool IsTouchingSpearActor() const;
 	void MoveToNextLocation(float DeltaTime);
-	void StopMovement();
 };
 
