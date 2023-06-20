@@ -16,18 +16,18 @@ public:
 	ASpearActor();
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spear")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Spear")
 	class USceneComponent* RootSceneComponent;
 
     // The static mesh component for the spear
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spear")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Spear")
     class UStaticMeshComponent* SpearMesh;
 
     // The hitbox component for the spear
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spear")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Spear")
     class UBoxComponent* SpearCollision;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spear")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Spear")
     class UCapsuleComponent* SpearTipHitbox;
 
 protected:
@@ -38,15 +38,15 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Throw")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Throw")
     bool bIsThrown = false;
 
-	UPROPERTY(EditAnywhere, Category = "Throw")
+	UPROPERTY(EditAnywhere, Category = "G_Throw")
     float ThrowStrength = 2000.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Throw")
+	UPROPERTY(EditAnywhere, Category = "G_Throw")
 	float FallSpeed = 100.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Throw")
+	UPROPERTY(EditAnywhere, Category = "G_Throw")
 	float OffsetFromWall = 80.0f;
 };

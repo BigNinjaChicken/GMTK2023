@@ -43,10 +43,10 @@ class GMTK2023_API ASpearCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* ThrowAction;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Spear")
+	UPROPERTY(EditDefaultsOnly, Category = "G_Spear")
 	TSubclassOf<class ASpearActor> SpearActorBlueprint;
 
-	UPROPERTY(EditAnywhere, Category = "UI")
+	UPROPERTY(EditAnywhere, Category = "G_UI")
 	TSubclassOf<class UUserWidget> CrosshairWidgetBlueprint;
 
 public:
@@ -65,17 +65,17 @@ protected:
 	void ThrowOngoing(const FInputActionValue& Value);
 	void ThrowComplete(const FInputActionValue& Value);
 	void MoveCameraBoomBack();
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spear")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Spear")
 	ASpearActor* NewSpear;
-	UPROPERTY(EditAnywhere, Category = "Spear")
+	UPROPERTY(EditAnywhere, Category = "G_Spear")
 	FVector SpearSpawnOffset = FVector(0.0f, 0.0f, 150.0f);
-	UPROPERTY(EditAnywhere, Category = "Spear")
+	UPROPERTY(EditAnywhere, Category = "G_Spear")
 	float RaycastMaxDistance = 10000.0f;
-	UPROPERTY(EditAnywhere, Category = "Spear")
+	UPROPERTY(EditAnywhere, Category = "G_Spear")
 	float CameraMoveBackSpeed = 500.0f;
-	UPROPERTY(EditAnywhere, Category = "Spear")
+	UPROPERTY(EditAnywhere, Category = "G_Spear")
 	float CameraNudgeMaxDistance = 75.0f;
-	UPROPERTY(EditAnywhere, Category = "Spear")
+	UPROPERTY(EditAnywhere, Category = "G_Spear")
 	float CameraNudgeSpeed = 1.0f;
 
 protected:
