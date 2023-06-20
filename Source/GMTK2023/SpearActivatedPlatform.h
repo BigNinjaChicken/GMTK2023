@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -9,18 +7,33 @@
 UCLASS()
 class GMTK2023_API ASpearActivatedPlatform : public AActor
 {
-	GENERATED_BODY()
-	
-public:	
-	// Sets default values for this actor's properties
+GENERATED_BODY()
+
+public:
 	ASpearActivatedPlatform();
 
-protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UStaticMeshComponent* PlatformMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UParticleSystemComponent* ParticleSystemComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	TArray<FVector> PlatformLocations;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	float MovementSpeed = 100.0f;
+
+private:
+	bool bIsMoving = false;
+	int32 TargetLocationIndex = 0;
+
+	bool IsTouchingSpearActor() const;
+	void MoveToNextLocation(float DeltaTime);
+	void StopMovement();
 };
+
