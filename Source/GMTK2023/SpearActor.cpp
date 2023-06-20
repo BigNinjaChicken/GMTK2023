@@ -33,7 +33,6 @@ ASpearActor::ASpearActor()
 void ASpearActor::BeginPlay()
 {
 	Super::BeginPlay();
-
 }
 
 // Called every frame
@@ -83,10 +82,18 @@ void ASpearActor::Tick(float DeltaTime)
             FVector NewLocation = HitResult.Location + WallOffset;
             SetActorLocation(NewLocation);
 
+            // Attach the spear to the actor it hit
+            AActor* HitActor = HitResult.GetActor();
+            if (HitActor)
+            {
+                AttachToActor(HitActor, FAttachmentTransformRules::KeepWorldTransform);
+            }
+
             // Print the collided actor's name to the screen
             // FString CollidedActorName = HitResult.GetActor() != nullptr ? HitResult.GetActor()->GetName() : TEXT("Unknown Actor");
             // GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Collided with: %s"), *CollidedActorName));
         }
+
     }
 }
 
