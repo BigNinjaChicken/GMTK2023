@@ -9,29 +9,37 @@
 UCLASS()
 class GMTK2023_API ACutsceneCameraPawn : public APawn
 {
- GENERATED_BODY()
+    GENERATED_BODY()
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class UCameraComponent* FollowCamera;
 
 public:
     ACutsceneCameraPawn();
 
 protected:
     virtual void BeginPlay() override;
+    virtual void Tick(float DeltaTime) override;
 
-private:
-    UPROPERTY(EditAnywhere, Category = "Cutscene Camera")
-    TArray<AActor*> CameraLocations;
+    void RunCutscene(float DeltaTime);
 
-    UPROPERTY(EditAnywhere, Category = "Cutscene Camera")
-    float TransitionTime;
+    void CompleteCutscene();
 
-    UFUNCTION()
-    void MoveCameraToNextLocation();
+public:
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Cutscene")
+    TArray<class ACutsceneLocation*> CutsceneLocations;
 
-    void StartCutscene();
+    UPROPERTY(EditAnywhere, Category = "G_Cutscene")
+    float TotalTime = 5.0f; 
 
-    void MoveCameraToLocation(FVector TargetLocation);
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Cutscene")
+    int32 CurrentIndex = 0;
 
-    void TransitionCompleted();
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Cutscene")
+    float ElapsedTime = 0.0f;
 
-    void NotifyOtherPlayers();
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Cutscene")
+    bool bCutsceneComplete = true;
+
+
 };

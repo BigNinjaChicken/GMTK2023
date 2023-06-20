@@ -2,85 +2,115 @@
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/SceneComponent.h"
 #include "GameFramework/PlayerStart.h"
+#include "CutsceneLocation.h"
+#include <Components/SplineComponent.h>
+#include <Components/ArrowComponent.h>
+#include <Camera/CameraComponent.h>
 
 
 ACutsceneCameraPawn::ACutsceneCameraPawn()
 {
-    PrimaryActorTick.bCanEverTick = false;
+	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
+	FollowCamera->SetupAttachment(RootComponent);
 }
 
 void ACutsceneCameraPawn::BeginPlay()
 {
-    Super::BeginPlay();
+	Super::BeginPlay();
 
-    // Wait for other players to load into the level
-    FTimerHandle TimerHandle;
-    GetWorldTimerManager().SetTimer(TimerHandle, this, &ACutsceneCameraPawn::StartCutscene, 1.0f, false);
+	// Get all CutsceneLocation actors
+	TArray<AActor*> OutActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACutsceneLocation::StaticClass(), OutActors);
+
+	// Cast them and add them to an array
+	for (AActor* Actor : OutActors)
+	{
+		ACutsceneLocation* CutsceneLocation = Cast<ACutsceneLocation>(Actor);
+		if (CutsceneLocation)
+		{
+			CutsceneLocations.Add(CutsceneLocation);
+		}
+	}
+
+	// Sort CutsceneLocations array by OrderIndex
+	CutsceneLocations.Sort([](const ACutsceneLocation& A, const ACutsceneLocation& B) {
+		return A.OrderIndex < B.OrderIndex;
+		});
 }
 
-void ACutsceneCameraPawn::MoveCameraToNextLocation()
+void ACutsceneCameraPawn::Tick(float DeltaTime)
 {
-    if (CameraLocations.IsValidIndex(0))
-    {
-        FVector TargetLocation = CameraLocations[0]->GetActorLocation();
-        CameraLocations.RemoveAt(0);
-        MoveCameraToLocation(TargetLocation);
-    }
-    else
-    {
-        // All camera locations have been visited, cutscene is complete
-        TransitionCompleted();
-    }
+    Super::Tick(DeltaTime);
+
+	RunCutscene(DeltaTime);
 }
 
-void ACutsceneCameraPawn::StartCutscene()
+void ACutsceneCameraPawn::RunCutscene(float DeltaTime)
 {
-    // Notify other players that the cutscene is starting
-    NotifyOtherPlayers();
+	// Check if there are any CutsceneLocations available
+	if (CutsceneLocations.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CutsceneLocations Is Empty"));
+		return;
+	}
 
-    // Start moving the camera to the next location
-    MoveCameraToNextLocation();
+	if (CurrentIndex >= CutsceneLocations.Num())
+	{
+		if (!bCutsceneComplete)
+		{
+			// The cutscene is complete, perform any necessary actions
+			CompleteCutscene();
+			bCutsceneComplete = true;
+		}
+		return;
+	}
+
+	ACutsceneLocation* CutsceneLocation = CutsceneLocations[CurrentIndex];
+	int32 OrderIndex = CutsceneLocation->OrderIndex;
+	USplineComponent* SplineComponent = CutsceneLocation->CameraSplineTrack;
+
+	// Check if the spline component is valid
+	if (!SplineComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SplineComponent is null"));
+		return;
+	}
+
+	// Calculate the target distance along the spline based on OrderIndex
+	float TargetDistance = SplineComponent->GetSplineLength() * (static_cast<float>(OrderIndex) / CutsceneLocations.Num());
+
+	// Calculate the current distance along the spline based on the elapsed time
+	float CurrentDistance = TargetDistance * (ElapsedTime / TotalTime);
+
+	// Calculate the target location along the spline
+	FVector TargetLocation = SplineComponent->GetLocationAtDistanceAlongSpline(CurrentDistance, ESplineCoordinateSpace::World);
+
+	// Set the camera's location to the target location
+	SetActorLocation(TargetLocation);
+
+	// Set the camera's rotation based on the Arrow rotation in the CutsceneLocation
+	FRotator TargetRotation = CutsceneLocation->ArrowComponent->GetComponentRotation();
+	FollowCamera->SetWorldRotation(TargetRotation);
+
+	// Update the elapsed time
+	ElapsedTime += DeltaTime;
+
+	// Check if the total time has been reached
+	if (ElapsedTime >= TotalTime)
+	{
+		CurrentIndex++;
+		ElapsedTime = 0.0f;
+	}
 }
 
-void ACutsceneCameraPawn::MoveCameraToLocation(FVector TargetLocation)
+void ACutsceneCameraPawn::CompleteCutscene()
 {
-    APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-    if (PlayerController)
-    {
-        PlayerController->SetViewTargetWithBlend(this, TransitionTime);
-        SetActorLocation(TargetLocation);
-        FTimerHandle TimerHandle;
-        GetWorldTimerManager().SetTimer(TimerHandle, this, &ACutsceneCameraPawn::MoveCameraToNextLocation, TransitionTime, false);
-    }
+	// Perform any necessary actions upon completing the cutscene
+
 }
 
-void ACutsceneCameraPawn::TransitionCompleted()
-{
-    // Cutscene is complete, return control to the player
-    APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-    if (PlayerController)
-    {
-        PlayerController->Possess(PlayerController->GetPawn());
-        Destroy();
-    }
-}
 
-void ACutsceneCameraPawn::NotifyOtherPlayers()
-{
-    TArray<AActor*> PlayerStarts;
-    UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), PlayerStarts);
 
-    for (AActor* PlayerStart : PlayerStarts)
-    {
-        if (PlayerStart != nullptr && PlayerStart != this)
-        {
-            APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), PlayerStarts.Find(PlayerStart));
-            if (PlayerController)
-            {
-                // Notify other players to pause their gameplay
-                PlayerController->SetPause(true);
-            }
-        }
-    }
-}
+
