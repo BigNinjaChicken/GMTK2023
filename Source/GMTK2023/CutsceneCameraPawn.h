@@ -29,9 +29,6 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Cutscene")
     TArray<class ACutsceneLocation*> CutsceneLocations;
 
-    UPROPERTY(EditAnywhere, Category = "G_Cutscene")
-    float TotalTime = 5.0f; 
-
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Cutscene")
     int32 CurrentIndex = 0;
 
@@ -39,7 +36,7 @@ public:
     float ElapsedTime = 0.0f;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Cutscene")
-    bool bCutsceneComplete = true;
+    bool bCutsceneComplete = false;
 
 
 };

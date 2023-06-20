@@ -8,6 +8,7 @@
 #include <Components/SplineComponent.h>
 #include <Components/ArrowComponent.h>
 #include <Camera/CameraComponent.h>
+#include "SpearCharacter.h"
 
 
 ACutsceneCameraPawn::ACutsceneCameraPawn()
@@ -70,6 +71,7 @@ void ACutsceneCameraPawn::RunCutscene(float DeltaTime)
 	ACutsceneLocation* CutsceneLocation = CutsceneLocations[CurrentIndex];
 	int32 OrderIndex = CutsceneLocation->OrderIndex;
 	USplineComponent* SplineComponent = CutsceneLocation->CameraSplineTrack;
+	float TotalTime = CutsceneLocation->TotalTime;
 
 	// Check if the spline component is valid
 	if (!SplineComponent)
@@ -107,10 +109,16 @@ void ACutsceneCameraPawn::RunCutscene(float DeltaTime)
 
 void ACutsceneCameraPawn::CompleteCutscene()
 {
-	// Perform any necessary actions upon completing the cutscene
+	// Spawn the ASpearCharacter
+	FVector SpawnLocation = GetActorLocation(); // Use the current camera location as the spawn location
+	FRotator SpawnRotation = GetActorRotation(); // Use the current camera rotation as the spawn rotation
+	FActorSpawnParameters SpawnParams;
+	ASpearCharacter* SpearCharacter = GetWorld()->SpawnActor<ASpearCharacter>(ASpearCharacter::StaticClass(), SpawnLocation, SpawnRotation, SpawnParams);
 
+	if (SpearCharacter)
+	{
+		// Possess the SpearCharacter with the player controller
+		APlayerController* PlayerController = Cast<APlayerController>(Controller);
+		PlayerController->Possess(SpearCharacter);
+	}
 }
-
-
-
-

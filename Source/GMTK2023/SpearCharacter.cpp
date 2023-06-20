@@ -57,10 +57,9 @@ ASpearCharacter::ASpearCharacter()
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 }
 
-void ASpearCharacter::BeginPlay()
+void ASpearCharacter::PossessedBy(AController* NewController)
 {
-	// Call the base class  
-	Super::BeginPlay();
+	Super::PossessedBy(NewController);
 
 	//Add Input Mapping Context
 	APlayerController* PlayerController = Cast<APlayerController>(Controller);

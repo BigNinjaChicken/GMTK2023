@@ -31,4 +31,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "G_Cutscene", meta = (ClampMin = "1", ClampMax = "10", UIMin = "1", UIMax = "10", SliderExponent = "1.0"))
 	int32 OrderIndex = 1;
+
+	UPROPERTY(EditAnywhere, Category = "G_Cutscene", meta = (ClampMin = "1", ClampMax = "10", UIMin = "1", UIMax = "10", SliderExponent = "1.0"))
+	float TotalTime = 4.0f;
 };
