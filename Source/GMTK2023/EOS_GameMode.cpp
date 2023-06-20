@@ -14,22 +14,18 @@ void AEOS_GameMode::BeginPlay()
 void AEOS_GameMode::PostLogin(APlayerController* NewPlayer)
 {
     Super::PostLogin(NewPlayer);
-    if (NewPlayer)
+    if (!NewPlayer)
     {
-        FUniqueNetIdRepl UniqueNetIdRepl;
-        if (NewPlayer->IsLocalPlayerController()) // Host of server in GameMode
+        return;
+    }
+
+    FUniqueNetIdRepl UniqueNetIdRepl;
+    if (NewPlayer->IsLocalPlayerController()) // Host of server in GameMode
+    {
+        ULocalPlayer* LocalPlayerRef = NewPlayer->GetLocalPlayer();
+        if (LocalPlayerRef)
         {
-            ULocalPlayer* LocalPlayerRef = NewPlayer->GetLocalPlayer();
-            if (LocalPlayerRef)
-            {
-                UniqueNetIdRepl = LocalPlayerRef->GetPreferredUniqueNetId();
-            }
-            else
-            {
-                UNetConnection* RemoteNetConnectionRef = Cast<UNetConnection>(NewPlayer->Player);
-                check(IsValid(RemoteNetConnectionRef));
-                UniqueNetIdRepl = RemoteNetConnectionRef->PlayerId;
-            }
+            UniqueNetIdRepl = LocalPlayerRef->GetPreferredUniqueNetId();
         }
         else
         {
@@ -37,21 +33,28 @@ void AEOS_GameMode::PostLogin(APlayerController* NewPlayer)
             check(IsValid(RemoteNetConnectionRef));
             UniqueNetIdRepl = RemoteNetConnectionRef->PlayerId;
         }
+    }
+    else
+    {
+        UNetConnection* RemoteNetConnectionRef = Cast<UNetConnection>(NewPlayer->Player);
+        check(IsValid(RemoteNetConnectionRef));
+        UniqueNetIdRepl = RemoteNetConnectionRef->PlayerId;
+    }
 
-        TSharedPtr<const FUniqueNetId> UniqueNetId = UniqueNetIdRepl.GetUniqueNetId();
-        if (UniqueNetId.IsValid())
+    TSharedPtr<const FUniqueNetId> UniqueNetId = UniqueNetIdRepl.GetUniqueNetId();
+    if (UniqueNetId.IsValid())
+    {
+        IOnlineSubsystem* SubsystemRef = Online::GetSubsystem(NewPlayer->GetWorld());
+        IOnlineSessionPtr SessionRef = SubsystemRef->GetSessionInterface();
+        bool bRegistrationSuccess = SessionRef->RegisterPlayer(FName("MainSession"), *UniqueNetId, false);
+        if (bRegistrationSuccess)
         {
-            IOnlineSubsystem* SubsystemRef = Online::GetSubsystem(NewPlayer->GetWorld());
-            IOnlineSessionPtr SessionRef = SubsystemRef->GetSessionInterface();
-            bool bRegistrationSuccess = SessionRef->RegisterPlayer(FName("MainSession"), *UniqueNetId, false);
-            if (bRegistrationSuccess)
-            {
-                UE_LOG(LogTemp, Warning, TEXT("Registration Success"));
-            }
-        }
-        else
-        {
-            UE_LOG(LogTemp, Error, TEXT("Invalid UniqueNetId"));
+            UE_LOG(LogTemp, Warning, TEXT("Registration Success"));
         }
     }
+    else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Invalid UniqueNetId"));
+	}
+
 }
