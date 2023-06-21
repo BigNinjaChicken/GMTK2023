@@ -38,5 +38,6 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Cutscene")
     bool bCutsceneComplete = false;
 
-
+    UPROPERTY(EditDefaultsOnly, Category = "G_Cutscene")
+	TSubclassOf<class ASpearCharacter> SpearCharacterBlueprint;
 };

@@ -23,10 +23,10 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(EditAnywhere, Category = "G_Cutscene")
+	UPROPERTY(EditAnywhere, Category = "Component")
 	class USplineComponent* CameraSplineTrack;
 
-	UPROPERTY(EditAnywhere, Category = "G_Cutscene")
+	UPROPERTY(EditAnywhere, Category = "Component")
     class UArrowComponent* ArrowComponent;
 
 	UPROPERTY(EditAnywhere, Category = "G_Cutscene", meta = (ClampMin = "1", ClampMax = "10", UIMin = "1", UIMax = "10", SliderExponent = "1.0"))

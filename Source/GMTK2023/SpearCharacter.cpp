@@ -62,7 +62,7 @@ void ASpearCharacter::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 
 	//Add Input Mapping Context
-	APlayerController* PlayerController = Cast<APlayerController>(Controller);
+	APlayerController* PlayerController = Cast<APlayerController>(NewController);
 	if (PlayerController)
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))

@@ -9,6 +9,7 @@
 #include <Components/ArrowComponent.h>
 #include <Camera/CameraComponent.h>
 #include "SpearCharacter.h"
+#include "GameFramework/PlayerController.h" 
 
 
 ACutsceneCameraPawn::ACutsceneCameraPawn()
@@ -110,10 +111,10 @@ void ACutsceneCameraPawn::RunCutscene(float DeltaTime)
 void ACutsceneCameraPawn::CompleteCutscene()
 {
 	// Spawn the ASpearCharacter
-	FVector SpawnLocation = GetActorLocation(); // Use the current camera location as the spawn location
-	FRotator SpawnRotation = GetActorRotation(); // Use the current camera rotation as the spawn rotation
+	FVector SpawnLocation = GetActorLocation();
+	FRotator SpawnRotation = FRotator::ZeroRotator; // Reset rotation to zero
 	FActorSpawnParameters SpawnParams;
-	ASpearCharacter* SpearCharacter = GetWorld()->SpawnActor<ASpearCharacter>(ASpearCharacter::StaticClass(), SpawnLocation, SpawnRotation, SpawnParams);
+	ASpearCharacter* SpearCharacter = GetWorld()->SpawnActor<ASpearCharacter>(SpearCharacterBlueprint, SpawnLocation, SpawnRotation, SpawnParams);
 
 	if (SpearCharacter)
 	{
