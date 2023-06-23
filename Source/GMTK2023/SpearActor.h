@@ -16,19 +16,29 @@ public:
 	ASpearActor();
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Spear")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
 	class USceneComponent* RootSceneComponent;
 
     // The static mesh component for the spear
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Spear")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
     class UStaticMeshComponent* SpearMesh;
 
     // The hitbox component for the spear
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Spear")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
     class UBoxComponent* SpearCollision;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Spear")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
     class UCapsuleComponent* SpearTipHitbox;
+
+	// Declare particle system components
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "G_Effects")
+	class UParticleSystemComponent* SpearEmittionParticle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "G_Effects")
+	class UParticleSystemComponent* SpearTrailParticle;
+
+	UPROPERTY(EditAnywhere, Category = "G_Effects")
+	TSubclassOf<class UCameraShakeBase> SpearImpactCameraShakeBlueprint;
 
 protected:
 	// Called when the game starts or when spawned

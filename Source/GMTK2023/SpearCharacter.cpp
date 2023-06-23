@@ -15,6 +15,7 @@
 #include <GameFramework/Actor.h>
 #include "Math/UnrealMathUtility.h"
 #include <UMG/Public/Blueprint/UserWidget.h>
+#include <Camera/CameraShakeBase.h>
 
 
 ASpearCharacter::ASpearCharacter()
@@ -62,7 +63,7 @@ void ASpearCharacter::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 
 	//Add Input Mapping Context
-	APlayerController* PlayerController = Cast<APlayerController>(NewController);
+	APlayerController* PlayerController = Cast<APlayerController>(Controller);
 	if (PlayerController)
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -154,41 +155,10 @@ void ASpearCharacter::Throw(const FInputActionValue& Value)
 		UE_LOG(LogTemp, Warning, TEXT("SpearActorBlueprint is null"));
 		return;
 	}
+
 	FVector SpawnLocation = GetActorLocation() + SpearSpawnOffset; // Adjust the Z-axis offset as needed
+	FVector SpearTargetLocation = GetSpearTargetLocation();
 
-	APlayerController* PlayerController = Cast<APlayerController>(Controller);
-	int32 ViewportSizeX, ViewportSizeY;
-	PlayerController->GetViewportSize(ViewportSizeX, ViewportSizeY);
-
-	FVector2D ScreenCenter(ViewportSizeX * 0.5f, ViewportSizeY * 0.5f);
-
-	FVector WorldLocation, WorldDirection;
-	PlayerController->DeprojectScreenPositionToWorld(ScreenCenter.X, ScreenCenter.Y, WorldLocation, WorldDirection);
-
-	FHitResult HitResult;
-	FCollisionQueryParams Params;
-	Params.bTraceComplex = true;
-	Params.AddIgnoredActor(this);
-
-	FVector SpearTargetLocation;
-	if (GetWorld()->LineTraceSingleByChannel(HitResult, WorldLocation, WorldLocation + (WorldDirection * RaycastMaxDistance), ECC_Visibility, Params))
-	{
-		SpearTargetLocation = HitResult.Location;
-	}
-	else
-	{
-		SpearTargetLocation = WorldLocation + (WorldDirection * RaycastMaxDistance);
-	}
-
-	float DeltaTime = GetWorld()->GetDeltaSeconds();
-
-	// Nudge Camera to Right
-	FVector CameraBoomLocation = CameraBoom->GetComponentLocation();
-	FVector RightVector = CameraBoom->GetRightVector();
-	CameraBoom->TargetOffset = FMath::Lerp(CameraBoom->TargetOffset, CameraNudgeMaxDistance, DeltaTime * CameraNudgeSpeed);
-
-	// Calculate rotation interpolation
-	float RotationLerpSpeed = 100.0f;
 	FRotator SpawnRotation = (SpearTargetLocation - SpawnLocation).Rotation();
 	NewSpear = GetWorld()->SpawnActor<ASpearActor>(SpearActorBlueprint, SpawnLocation, SpawnRotation);
 
@@ -204,49 +174,71 @@ void ASpearCharacter::ThrowOngoing(const FInputActionValue& Value)
 {
 	if (NewSpear && CameraBoom)
 	{
-		APlayerController* PlayerController = Cast<APlayerController>(Controller);
-		int32 ViewportSizeX, ViewportSizeY;
-		PlayerController->GetViewportSize(ViewportSizeX, ViewportSizeY);
-
-		FVector2D ScreenCenter(ViewportSizeX * 0.5f, ViewportSizeY * 0.5f);
-
-		FVector WorldLocation, WorldDirection;
-		PlayerController->DeprojectScreenPositionToWorld(ScreenCenter.X, ScreenCenter.Y, WorldLocation, WorldDirection);
-
-		FHitResult HitResult;
-		FCollisionQueryParams Params;
-		Params.bTraceComplex = true;
-		Params.AddIgnoredActor(this);
-		Params.AddIgnoredActor(NewSpear);
-
-		FVector SpearTargetLocation;
-		if (GetWorld()->LineTraceSingleByChannel(HitResult, WorldLocation, WorldLocation + (WorldDirection * 10000.0f), ECC_Visibility, Params))
-		{
-			SpearTargetLocation = HitResult.Location;
-		}
-		else
-		{
-			SpearTargetLocation = WorldLocation + (WorldDirection * 10000.0f);
-		}
+		FVector SpearTargetLocation = GetSpearTargetLocation();
 
 		float DeltaTime = GetWorld()->GetDeltaSeconds();
+		float RotationLerpSpeed = 10.0f;
 
-		// Nudge Camera to Right
-		FVector CameraBoomLocation = CameraBoom->GetComponentLocation();
-		FVector RightVector = CameraBoom->GetRightVector();
-		CameraBoom->TargetOffset = FMath::Lerp(CameraBoom->TargetOffset, CameraNudgeMaxDistance, DeltaTime * CameraNudgeSpeed);
-
-		// Calculate rotation interpolation
-		float RotationLerpSpeed = 100.0f;
 		FRotator CurrentRotation = NewSpear->GetActorRotation();
 		FRotator NewRotation = (SpearTargetLocation - NewSpear->GetActorLocation()).Rotation();
-		FRotator LerpedRotation = FMath::Lerp(CurrentRotation, NewRotation, DeltaTime * RotationLerpSpeed);
+		FRotator LerpedRotation = FMath::RInterpTo(CurrentRotation, NewRotation, DeltaTime, RotationLerpSpeed);
 
 		// Clamp the pitch rotation to a range of -50 to 50 degrees
 		LerpedRotation.Pitch = FMath::Clamp(LerpedRotation.Pitch, -50.0f, 50.0f);
 
 		NewSpear->SetActorRotation(LerpedRotation);
+
+		// Nudge Camera to Right
+		FVector RightVector = CameraBoom->GetRightVector();
+		FVector TargetOffset = RightVector * CameraNudgeMaxDistance;
+		FVector CurrentOffset = CameraBoom->TargetOffset;
+
+		// Interpolate the current offset towards the target offset
+		float InterpolationAlpha = FMath::Clamp(GetWorld()->GetDeltaSeconds() * CameraNudgeSpeed, 0.0f, 1.0f);
+		FVector NewOffset = FMath::VInterpTo(CurrentOffset, TargetOffset, InterpolationAlpha, CameraNudgeSpeed);
+
+		CameraBoom->TargetOffset = NewOffset;
+
+		NewSpear->SetActorRotation(LerpedRotation);
 	}
+}
+
+FVector ASpearCharacter::GetSpearTargetLocation()
+{
+	APlayerController* PlayerController = Cast<APlayerController>(Controller);
+	if (!PlayerController)
+	{
+		return FVector::ZeroVector;
+	}
+
+	int32 ViewportSizeX, ViewportSizeY;
+	PlayerController->GetViewportSize(ViewportSizeX, ViewportSizeY);
+
+	FVector2D ScreenCenter(ViewportSizeX * 0.5f, ViewportSizeY * 0.5f);
+
+	FVector WorldLocation, WorldDirection;
+	PlayerController->DeprojectScreenPositionToWorld(ScreenCenter.X, ScreenCenter.Y, WorldLocation, WorldDirection);
+
+	FHitResult HitResult;
+	FCollisionQueryParams Params;
+	Params.bTraceComplex = true;
+	Params.AddIgnoredActor(this);
+	if (NewSpear)
+	{
+		Params.AddIgnoredActor(NewSpear);
+	}
+
+	FVector SpearTargetLocation;
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, WorldLocation, WorldLocation + (WorldDirection * RaycastMaxDistance), ECC_Visibility, Params))
+	{
+		SpearTargetLocation = HitResult.Location;
+	}
+	else
+	{
+		SpearTargetLocation = WorldLocation + (WorldDirection * RaycastMaxDistance);
+	}
+
+	return SpearTargetLocation;
 }
 
 
@@ -256,6 +248,10 @@ void ASpearCharacter::ThrowComplete(const FInputActionValue& Value)
 	// Detach the spear from the character
 	NewSpear->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	NewSpear->bIsThrown = true;
+
+	ECameraShakePlaySpace PlaySpace = ECameraShakePlaySpace::CameraLocal;
+	APlayerCameraManager* CameraManager = Cast<APlayerController>(Controller)->PlayerCameraManager;
+	CameraManager->StartCameraShake(SpearHoldingCameraShakeBlueprint, 1.0f, PlaySpace, FRotator(0.0f, 0.0f, 0.0f));
 
 	MoveCameraBoomBack();
 

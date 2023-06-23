@@ -49,6 +49,9 @@ class GMTK2023_API ASpearCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, Category = "G_UI")
 	TSubclassOf<class UUserWidget> CrosshairWidgetBlueprint;
 
+	UPROPERTY(EditAnywhere, Category = "G_Spear")
+	TSubclassOf<class UCameraShakeBase> SpearHoldingCameraShakeBlueprint;
+
 public:
 	ASpearCharacter();
 	
@@ -64,6 +67,7 @@ protected:
 
 	void Throw(const FInputActionValue& Value);
 	void ThrowOngoing(const FInputActionValue& Value);
+	FVector GetSpearTargetLocation();
 	void ThrowComplete(const FInputActionValue& Value);
 	void MoveCameraBoomBack();
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Spear")
