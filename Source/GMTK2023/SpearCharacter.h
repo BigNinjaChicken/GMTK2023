@@ -43,6 +43,9 @@ class GMTK2023_API ASpearCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* ThrowAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* RecallAction;
+
 	UPROPERTY(EditDefaultsOnly, Category = "G_Spear")
 	TSubclassOf<class ASpearActor> SpearActorBlueprint;
 
@@ -55,7 +58,8 @@ class GMTK2023_API ASpearCharacter : public ACharacter
 public:
 	ASpearCharacter();
 	
-
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
 protected:
 	virtual void PossessedBy(AController* NewController) override;
 
@@ -70,18 +74,43 @@ protected:
 	FVector GetSpearTargetLocation();
 	void ThrowComplete(const FInputActionValue& Value);
 	void MoveCameraBoomBack();
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Spear")
+
+	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_SpearThrow")
 	ASpearActor* NewSpear;
-	UPROPERTY(EditAnywhere, Category = "G_Spear")
+
+	UPROPERTY(EditAnywhere, Category = "G_SpearThrow")
 	FVector SpearSpawnOffset = FVector(0.0f, 0.0f, 150.0f);
-	UPROPERTY(EditAnywhere, Category = "G_Spear")
+
+	UPROPERTY(EditAnywhere, Category = "G_SpearThrow")
 	float RaycastMaxDistance = 10000.0f;
-	UPROPERTY(EditAnywhere, Category = "G_Spear")
+
+	UPROPERTY(EditAnywhere, Category = "G_SpearThrow")
 	float CameraMoveBackSpeed = 500.0f;
-	UPROPERTY(EditAnywhere, Category = "G_Spear")
+
+	UPROPERTY(EditAnywhere, Category = "G_SpearThrow")
 	float CameraNudgeMaxDistance = 75.0f;
-	UPROPERTY(EditAnywhere, Category = "G_Spear")
+
+	UPROPERTY(EditAnywhere, Category = "G_SpearThrow")
 	float CameraNudgeSpeed = 1.0f;
+
+	void Recall(const FInputActionValue& Value);
+	void RecallTick(float DeltaTime);
+
+	bool bRecalling = false;
+	ASpearActor* HitSpear;
+	double SpearStartingDistance;
+
+	UPROPERTY(EditAnywhere, Category = "G_SpearRecall")
+    float MoveSpeed = 400.0f;
+
+	UPROPERTY(EditAnywhere, Category = "G_SpearRecall")
+    float ArcHeight = 100.f;
+
+	UPROPERTY(EditAnywhere, Category = "G_SpearRecall")
+    float DeleteDelay = 0.1f;
+
+	UPROPERTY(EditAnywhere, Category = "G_SpearRecall")
+	double SpearDeleteDistance = 150.0f;
 
 protected:
 	// APawn interface

@@ -58,6 +58,11 @@ ASpearCharacter::ASpearCharacter()
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 }
 
+void ASpearCharacter::Tick(float DeltaTime)
+{
+	RecallTick(DeltaTime);
+}
+
 void ASpearCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
@@ -109,6 +114,8 @@ void ASpearCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 		EnhancedInputComponent->BindAction(ThrowAction, ETriggerEvent::Started, this, &ASpearCharacter::Throw);
 		EnhancedInputComponent->BindAction(ThrowAction, ETriggerEvent::Ongoing, this, &ASpearCharacter::ThrowOngoing);
 		EnhancedInputComponent->BindAction(ThrowAction, ETriggerEvent::Completed, this, &ASpearCharacter::ThrowComplete);
+
+		EnhancedInputComponent->BindAction(RecallAction, ETriggerEvent::Triggered, this, &ASpearCharacter::Recall);
 	}
 }
 
@@ -294,3 +301,78 @@ void ASpearCharacter::MoveCameraBoomBack()
 		}
 	}
 }
+
+void ASpearCharacter::Recall(const FInputActionValue& Value)
+{
+	// Get the forward vector of the character
+	FVector ForwardVector = FollowCamera->GetForwardVector();
+
+	// Calculate the end point of the raycast
+	FVector CameraLocation = FollowCamera->GetComponentLocation();
+	FVector EndPoint = CameraLocation + (ForwardVector * 5000);
+
+	// Perform the raycast
+	FHitResult HitResult;
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this); // Ignore the character itself
+
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, CameraLocation, EndPoint, ECC_Visibility, QueryParams))
+	{
+		if (!HitResult.GetActor())
+			return;
+
+		if (!HitResult.GetActor()->IsA(ASpearActor::StaticClass()))
+			return;
+
+		HitSpear = Cast<ASpearActor>(HitResult.GetActor());
+		if (!HitSpear)
+			return;
+
+		HitSpear->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		SpearStartingDistance = FVector::Distance(GetActorLocation(), HitSpear->GetActorLocation());
+		bRecalling = true;
+	}
+}
+
+void ASpearCharacter::RecallTick(float DeltaTime)
+{
+	if (!bRecalling || !HitSpear)
+		return;
+
+	// Calculate the distance to the player
+	float DistanceToPlayer = FVector::Distance(GetActorLocation(), HitSpear->GetActorLocation());
+
+	// Scale down the spear as it gets close to the player
+	float ScaleFactor = FMath::Clamp((DistanceToPlayer - SpearDeleteDistance) / (SpearStartingDistance - SpearDeleteDistance), 0.f, 1.f);
+	FVector NewScale = FVector::OneVector * ScaleFactor;
+	HitSpear->SetActorScale3D(NewScale);
+
+	// Move the spear towards the player in an arc
+	FVector MoveDirection = GetActorLocation() - HitSpear->GetActorLocation();
+	MoveDirection.Normalize();
+
+	FVector MoveOffset = MoveDirection * MoveSpeed * DeltaTime;
+
+	// Calculate the arc movement
+	float DistanceFactor = FMath::Clamp(DistanceToPlayer / 100.f, 0.f, 1.f);
+	float ArcOffsetZ = ArcHeight * FMath::Sin(DistanceFactor * PI);
+	FVector ArcOffset = FVector(0.f, 0.f, ArcOffsetZ);
+	FVector NewLocation = HitSpear->GetActorLocation() + MoveOffset + ArcOffset;
+
+	HitSpear->SetActorLocation(NewLocation);
+
+	if (DistanceToPlayer <= SpearDeleteDistance)
+	{
+		// Scale down the spear to zero
+		HitSpear->SetActorScale3D(FVector::ZeroVector);
+
+		// Delete the spear actor after a short delay
+		HitSpear->SetLifeSpan(DeleteDelay);
+
+		HitSpear = nullptr; // Reset the reference to avoid using a destroyed actor
+		bRecalling = false; // Reset the recall flag
+	}
+}
+
+
+
