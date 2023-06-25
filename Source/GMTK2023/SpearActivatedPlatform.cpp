@@ -37,12 +37,14 @@ void ASpearActivatedPlatform::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (!IsTouchingSpearActor())
+	if (!bIsAlwaysMoving && !IsTouchingSpearActor())
 	{
 		return;
 	}
+
 	MoveToNextLocation(DeltaTime);
 }
+
 
 bool ASpearActivatedPlatform::IsTouchingSpearActor() const
 {

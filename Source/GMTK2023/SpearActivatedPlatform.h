@@ -29,6 +29,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "G_Movement")
 	float MovementSpeed = 100.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "G_Movement")
+	bool bIsAlwaysMoving = false;
+
 
 private:
 	int32 TargetLocationIndex = 0;

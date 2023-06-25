@@ -40,6 +40,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "G_Effects")
 	TSubclassOf<class UCameraShakeBase> SpearImpactCameraShakeBlueprint;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Audio")
+	UAudioComponent* MetalBounceAudio;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

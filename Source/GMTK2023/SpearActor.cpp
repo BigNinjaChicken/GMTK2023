@@ -10,6 +10,8 @@
 #include <Engine/HitResult.h>
 #include "Components/BoxComponent.h"
 #include <Particles/ParticleSystemComponent.h>
+#include <Components/AudioComponent.h>
+#include "HardObject.h"
 
 // Sets default values
 ASpearActor::ASpearActor()
@@ -39,6 +41,10 @@ ASpearActor::ASpearActor()
 	SpearTrailParticle->SetupAttachment(SpearMesh);
 	SpearTrailParticle->SetRelativeLocation(FVector::ZeroVector);
 	SpearTrailParticle->bAutoActivate = false;
+
+	// Audio Components
+	MetalBounceAudio = CreateDefaultSubobject<UAudioComponent>(TEXT("MetalBounceAudio"));
+	MetalBounceAudio->SetupAttachment(SpearMesh);
 }
 
 // Called when the game starts or when spawned
@@ -96,6 +102,30 @@ void ASpearActor::Tick(float DeltaTime)
 
 	if (GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Visibility, CollisionParams))
 	{
+		AActor* HitActor = HitResult.GetActor();
+		if (!HitActor)
+			return;
+
+		UHardObject* HardObject = HitActor->GetComponentByClass<UHardObject>();
+		if (HardObject)
+		{
+			// The SpearTipHitbox touched a "Hard" tagged object, simulate bounce
+
+			// Calculate the reflection direction
+			FVector IncomingDirection = ForwardVector;
+			FVector Normal = HitResult.Normal;
+			FVector ReflectedDirection = IncomingDirection - 2 * FVector::DotProduct(IncomingDirection, Normal) * Normal;
+
+			// Rotate the spear to face the reflected direction
+			FRotator NewRotation = ReflectedDirection.Rotation();
+			SetActorRotation(NewRotation);
+
+			// Sound
+			MetalBounceAudio->Play();
+
+			return;
+		}
+
 		// The SpearTipHitbox touched something, stop moving and get stuck in the object it hit
 		bIsThrown = false;
 		SetActorLocation(HitResult.Location);
@@ -114,11 +144,7 @@ void ASpearActor::Tick(float DeltaTime)
 		SetActorLocation(NewLocation);
 
 		// Attach the spear to the actor it hit
-		AActor* HitActor = HitResult.GetActor();
-		if (HitActor)
-		{
-			AttachToActor(HitActor, FAttachmentTransformRules::KeepWorldTransform);
-		}
+		AttachToActor(HitActor, FAttachmentTransformRules::KeepWorldTransform);
 
 		// Impact Camera Shake
 		FVector ShakeLocation = GetActorLocation();
@@ -129,8 +155,6 @@ void ASpearActor::Tick(float DeltaTime)
 			APlayerCameraManager* PlayerCameraManager = PlayerController->PlayerCameraManager;
 			PlayerCameraManager->StartCameraShake(SpearImpactCameraShakeBlueprint);
 		}
-
-
 
 		// Print the collided actor's name to the screen
 		// FString CollidedActorName = HitResult.GetActor() != nullptr ? HitResult.GetActor()->GetName() : TEXT("Unknown Actor");
