@@ -110,12 +110,16 @@ void ASpearCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASpearCharacter::Look);
 
-		//Thowing
+		//Thowing Spear
 		EnhancedInputComponent->BindAction(ThrowAction, ETriggerEvent::Started, this, &ASpearCharacter::Throw);
 		EnhancedInputComponent->BindAction(ThrowAction, ETriggerEvent::Ongoing, this, &ASpearCharacter::ThrowOngoing);
 		EnhancedInputComponent->BindAction(ThrowAction, ETriggerEvent::Completed, this, &ASpearCharacter::ThrowComplete);
 
+		//Recalling Spear
 		EnhancedInputComponent->BindAction(RecallAction, ETriggerEvent::Triggered, this, &ASpearCharacter::Recall);
+
+		//Swapping Spear
+		EnhancedInputComponent->BindAction(SwapAction, ETriggerEvent::Triggered, this, &ASpearCharacter::Swap);
 	}
 }
 
@@ -374,5 +378,9 @@ void ASpearCharacter::RecallTick(float DeltaTime)
 	}
 }
 
+void ASpearCharacter::Swap(const FInputActionValue& Value)
+{
+
+}
 
 

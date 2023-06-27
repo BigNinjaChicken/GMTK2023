@@ -46,6 +46,9 @@ class GMTK2023_API ASpearCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* RecallAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* SwapAction;
+
 	UPROPERTY(EditDefaultsOnly, Category = "G_Spear")
 	TSubclassOf<class ASpearActor> SpearActorBlueprint;
 
@@ -55,8 +58,12 @@ class GMTK2023_API ASpearCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, Category = "G_Spear")
 	TSubclassOf<class UCameraShakeBase> SpearHoldingCameraShakeBlueprint;
 
+	UPROPERTY(EditAnywhere, Category = "G_Spear")
+	TArray<TSubclassOf<class ASpearActor>> SpearActorBlueprints;
+
 public:
 	ASpearCharacter();
+
 	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -111,6 +118,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "G_SpearRecall")
 	double SpearDeleteDistance = 150.0f;
+
+	void Swap(const FInputActionValue& Value);
 
 protected:
 	// APawn interface
