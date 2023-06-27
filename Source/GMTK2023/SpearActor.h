@@ -31,11 +31,11 @@ protected:
     class UCapsuleComponent* SpearTipHitbox;
 
 	// Declare particle system components
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "G_Effects")
-	class UParticleSystemComponent* SpearEmittionParticle;
+	UPROPERTY(EditAnywhere, Category = "G_Effects")
+	class UNiagaraComponent* SpearEmittionParticle;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "G_Effects")
-	class UParticleSystemComponent* SpearTrailParticle;
+	UPROPERTY(EditAnywhere, Category = "G_Effects")
+	class UNiagaraComponent* SpearTrailParticle;
 
 	UPROPERTY(EditAnywhere, Category = "G_Effects")
 	TSubclassOf<class UCameraShakeBase> SpearImpactCameraShakeBlueprint;

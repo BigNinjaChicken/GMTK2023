@@ -12,6 +12,7 @@
 #include <Particles/ParticleSystemComponent.h>
 #include <Components/AudioComponent.h>
 #include "HardObject.h"
+#include "NiagaraComponent.h"
 
 // Sets default values
 ASpearActor::ASpearActor()
@@ -32,12 +33,12 @@ ASpearActor::ASpearActor()
 	SpearTipHitbox->SetupAttachment(SpearCollision);
 
 	// Create Particle components
-	SpearEmittionParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("SpearEmittionParticle"));
+	SpearEmittionParticle = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SpearEmittionParticle"));
 	SpearEmittionParticle->SetupAttachment(SpearMesh);
 	SpearEmittionParticle->SetRelativeLocation(FVector::ZeroVector);
 	SpearEmittionParticle->bAutoActivate = false;
 
-	SpearTrailParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("SpearTrailParticle"));
+	SpearTrailParticle = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SpearTrailParticle"));
 	SpearTrailParticle->SetupAttachment(SpearMesh);
 	SpearTrailParticle->SetRelativeLocation(FVector::ZeroVector);
 	SpearTrailParticle->bAutoActivate = false;
