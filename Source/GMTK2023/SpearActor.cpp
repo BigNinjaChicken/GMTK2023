@@ -36,7 +36,7 @@ ASpearActor::ASpearActor()
 	SpearEmittionParticle = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SpearEmittionParticle"));
 	SpearEmittionParticle->SetupAttachment(SpearMesh);
 	SpearEmittionParticle->SetRelativeLocation(FVector::ZeroVector);
-	SpearEmittionParticle->bAutoActivate = false;
+	SpearEmittionParticle->bAutoActivate = true;
 
 	SpearTrailParticle = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SpearTrailParticle"));
 	SpearTrailParticle->SetupAttachment(SpearMesh);
@@ -52,9 +52,6 @@ ASpearActor::ASpearActor()
 void ASpearActor::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// Activate SpearEmittionParticle by default
-	SpearEmittionParticle->Activate();
 }
 
 // Called every frame
