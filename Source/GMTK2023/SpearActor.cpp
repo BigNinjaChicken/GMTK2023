@@ -46,6 +46,19 @@ ASpearActor::ASpearActor()
 	// Audio Components
 	MetalBounceAudio = CreateDefaultSubobject<UAudioComponent>(TEXT("MetalBounceAudio"));
 	MetalBounceAudio->SetupAttachment(SpearMesh);
+	MetalBounceAudio->SetAutoActivate(false);
+
+	ThrownAudio = CreateDefaultSubobject<UAudioComponent>(TEXT("ThrownAudio"));
+	ThrownAudio->SetupAttachment(SpearMesh);
+	ThrownAudio->SetAutoActivate(false);
+
+	HoldingAudio = CreateDefaultSubobject<UAudioComponent>(TEXT("HoldingAudio"));
+	HoldingAudio->SetupAttachment(SpearMesh);
+	HoldingAudio->SetAutoActivate(true);
+
+	ImpactAudio = CreateDefaultSubobject<UAudioComponent>(TEXT("ImpactAudio"));
+	ImpactAudio->SetupAttachment(SpearMesh);
+	ImpactAudio->SetAutoActivate(false);
 }
 
 // Called when the game starts or when spawned
@@ -71,10 +84,10 @@ void ASpearActor::Tick(float DeltaTime)
 		return;
 	}
 
-	// Activate SpearTrailParticle when spear is thrown
-	if (!SpearTrailParticle->IsActive())
+	if (!bHasThrownEffectsPlayed)
 	{
-		SpearTrailParticle->Activate();
+		PlaySpearThrowEffects();
+		bHasThrownEffectsPlayed = true;
 	}
 
 	FVector CurrentLocation = GetActorLocation();
@@ -147,6 +160,10 @@ void ASpearActor::Tick(float DeltaTime)
 		// Impact Camera Shake
 		FVector ShakeLocation = GetActorLocation();
 
+		if (ImpactAudio) {
+			ImpactAudio->Play();
+		}
+
 		for (FConstPlayerControllerIterator PlayerControllerIt = GetWorld()->GetPlayerControllerIterator(); PlayerControllerIt; ++PlayerControllerIt)
 		{
 			APlayerController* PlayerController = PlayerControllerIt->Get();
@@ -160,4 +177,18 @@ void ASpearActor::Tick(float DeltaTime)
 	}
 }
 
+void ASpearActor::PlaySpearThrowEffects()
+{
+	if (SpearTrailParticle) {
+		SpearTrailParticle->Activate();
+	}
+
+	if (ThrownAudio) {
+		ThrownAudio->Play();
+	}
+
+	if (HoldingAudio) {
+		HoldingAudio->Stop();
+	}
+}
 

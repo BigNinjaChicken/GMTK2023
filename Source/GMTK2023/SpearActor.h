@@ -43,6 +43,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Audio")
 	UAudioComponent* MetalBounceAudio;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Audio")
+	UAudioComponent* ThrownAudio;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Audio")
+	UAudioComponent* HoldingAudio;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Audio")
+	UAudioComponent* ImpactAudio;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -62,4 +71,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "G_Throw")
 	float OffsetFromWall = 80.0f;
+
+	void PlaySpearThrowEffects();
+	bool bHasThrownEffectsPlayed;
 };
