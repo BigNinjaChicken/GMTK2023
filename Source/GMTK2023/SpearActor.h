@@ -41,6 +41,9 @@ protected:
 	class UNiagaraComponent* SpearImpactParticle;
 
 	UPROPERTY(EditAnywhere, Category = "G_Effects")
+	class UNiagaraSystem* SpearDestroyParticle;
+
+	UPROPERTY(EditAnywhere, Category = "G_Effects")
 	TSubclassOf<class UCameraShakeBase> SpearImpactCameraShakeBlueprint;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Audio")
@@ -62,6 +65,8 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	void DestroyWithEffects();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Throw")
     bool bIsThrown = false;

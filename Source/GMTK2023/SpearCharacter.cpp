@@ -395,16 +395,17 @@ void ASpearCharacter::RecallTick(float DeltaTime)
 
 	if (DistanceToPlayer <= SpearDeleteDistance || bIsTouchingSpear)
 	{
-		// Spawn and play the Niagara particle
+		// Spear Death Particle Effects
 		if (RecallPoofParticle)
 		{
 			FVector ParticleSpawnLocation = HitSpear->GetActorLocation();
 			FRotator ParticleSpawnRotation = FRotator::ZeroRotator;
 			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), RecallPoofParticle, ParticleSpawnLocation, ParticleSpawnRotation);
 		}
+		HitSpear->DestroyWithEffects();
 
 		// Delete the spear actor after a short delay
-		HitSpear->SetLifeSpan(DeleteDelay);
+		// HitSpear->SetLifeSpan(DeleteDelay);
 		HitSpear->bIsBeingRecalled = true;
 
 		// Reset

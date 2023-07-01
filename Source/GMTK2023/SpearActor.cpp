@@ -13,6 +13,8 @@
 #include <Components/AudioComponent.h>
 #include "HardObject.h"
 #include "NiagaraComponent.h"
+#include <GameFramework/Actor.h>
+#include <../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraFunctionLibrary.h>
 
 // Sets default values
 ASpearActor::ASpearActor()
@@ -116,6 +118,13 @@ void ASpearActor::Tick(float DeltaTime)
 		if (!HitActor)
 			return;
 
+		// Stop spears from being stacked on each other
+		if (ASpearActor* SpearHitActor = Cast<ASpearActor>(HitActor))
+		{
+			// Destroy the SpearActor
+			DestroyWithEffects();
+		}
+
 		UHardObject* HardObject = HitActor->GetComponentByClass<UHardObject>();
 		if (HardObject)
 		{
@@ -179,6 +188,18 @@ void ASpearActor::Tick(float DeltaTime)
 		// FString CollidedActorName = HitResult.GetActor() != nullptr ? HitResult.GetActor()->GetName() : TEXT("Unknown Actor");
 		// GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Collided with: %s"), *CollidedActorName));
 	}
+}
+
+void ASpearActor::DestroyWithEffects()
+{
+	if (SpearDestroyParticle)
+	{
+		FVector ParticleSpawnLocation = GetActorLocation();
+		FRotator ParticleSpawnRotation = FRotator::ZeroRotator;
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), SpearDestroyParticle, ParticleSpawnLocation, ParticleSpawnRotation);
+	}
+
+	Destroy();
 }
 
 void ASpearActor::PlaySpearThrowEffects()
