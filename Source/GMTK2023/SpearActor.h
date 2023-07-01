@@ -40,16 +40,16 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "G_Effects")
 	TSubclassOf<class UCameraShakeBase> SpearImpactCameraShakeBlueprint;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Audio")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Audio")
 	UAudioComponent* MetalBounceAudio;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Audio")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Audio")
 	UAudioComponent* ThrownAudio;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Audio")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Audio")
 	UAudioComponent* HoldingAudio;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Audio")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Audio")
 	UAudioComponent* ImpactAudio;
 
 protected:
@@ -74,4 +74,6 @@ public:
 
 	void PlaySpearThrowEffects();
 	bool bHasThrownEffectsPlayed;
+
+	bool bIsBeingRecalled = false;
 };

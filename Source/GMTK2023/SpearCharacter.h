@@ -61,6 +61,9 @@ class GMTK2023_API ASpearCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, Category = "G_Spear")
 	TArray<TSubclassOf<class ASpearActor>> SpearActorBlueprints;
 
+	UPROPERTY(EditAnywhere, Category = "G_Effects")
+	class UNiagaraSystem* RecallPoofParticle;
+
 public:
 	ASpearCharacter();
 
@@ -114,7 +117,10 @@ protected:
     float ArcHeight = 100.f;
 
 	UPROPERTY(EditAnywhere, Category = "G_SpearRecall")
-    float DeleteDelay = 0.1f;
+    float DeleteDelay = 0.2f;
+
+	UPROPERTY(EditAnywhere, Category = "G_SpearRecall", Meta = (ToolTip = "The desired maximum scaling factor when the spear reaches the player. By decreasing the MaxScaleFactor, the spear will scale down more as it gets closer to the player."))
+	float MaxScaleFactor = 0.1f; // Set this to the desired maximum scaling factor when the spear reaches the player
 
 	UPROPERTY(EditAnywhere, Category = "G_SpearRecall")
 	double SpearDeleteDistance = 150.0f;

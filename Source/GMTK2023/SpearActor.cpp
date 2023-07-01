@@ -74,12 +74,6 @@ void ASpearActor::Tick(float DeltaTime)
 
 	if (!bIsThrown)
 	{
-		// Deactivate SpearTrailParticle when spear is not thrown
-		if (SpearTrailParticle->IsActive())
-		{
-			SpearTrailParticle->Deactivate();
-		}
-
 		// Do not continue is spear is not thrown
 		return;
 	}

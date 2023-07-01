@@ -16,6 +16,12 @@
 #include "Math/UnrealMathUtility.h"
 #include <UMG/Public/Blueprint/UserWidget.h>
 #include <Camera/CameraShakeBase.h>
+#include "Kismet/GameplayStatics.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
+#include <../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraActor.h>
+#include <UObject/UObjectGlobals.h>
 
 
 ASpearCharacter::ASpearCharacter()
@@ -173,45 +179,55 @@ void ASpearCharacter::Throw(const FInputActionValue& Value)
 	FRotator SpawnRotation = (SpearTargetLocation - SpawnLocation).Rotation();
 	NewSpear = GetWorld()->SpawnActor<ASpearActor>(SpearActorBlueprint, SpawnLocation, SpawnRotation);
 
-	if (NewSpear)
+	if (!NewSpear)
 	{
-		// Attach the spear to the character
-		FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepWorld, false);
-		NewSpear->AttachToComponent(SpearSpringArm, AttachmentRules);
+		UE_LOG(LogTemp, Warning, TEXT("NewSpear is null"));
+		return;
 	}
+
+	// Attach the spear to the character
+	FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepWorld, false);
+	NewSpear->AttachToComponent(SpearSpringArm, AttachmentRules);
 }
 
 void ASpearCharacter::ThrowOngoing(const FInputActionValue& Value)
 {
-	if (NewSpear && CameraBoom)
+	if (!NewSpear)
 	{
-		FVector SpearTargetLocation = GetSpearTargetLocation();
-
-		float DeltaTime = GetWorld()->GetDeltaSeconds();
-		float RotationLerpSpeed = 10.0f;
-
-		FRotator CurrentRotation = NewSpear->GetActorRotation();
-		FRotator NewRotation = (SpearTargetLocation - NewSpear->GetActorLocation()).Rotation();
-		FRotator LerpedRotation = FMath::RInterpTo(CurrentRotation, NewRotation, DeltaTime, RotationLerpSpeed);
-
-		// Clamp the pitch rotation to a range of -50 to 50 degrees
-		LerpedRotation.Pitch = FMath::Clamp(LerpedRotation.Pitch, -50.0f, 50.0f);
-
-		NewSpear->SetActorRotation(LerpedRotation);
-
-		// Nudge Camera to Right
-		FVector RightVector = CameraBoom->GetRightVector();
-		FVector TargetOffset = RightVector * CameraNudgeMaxDistance;
-		FVector CurrentOffset = CameraBoom->TargetOffset;
-
-		// Interpolate the current offset towards the target offset
-		float InterpolationAlpha = FMath::Clamp(GetWorld()->GetDeltaSeconds() * CameraNudgeSpeed, 0.0f, 1.0f);
-		FVector NewOffset = FMath::VInterpTo(CurrentOffset, TargetOffset, InterpolationAlpha, CameraNudgeSpeed);
-
-		CameraBoom->TargetOffset = NewOffset;
-
-		NewSpear->SetActorRotation(LerpedRotation);
+		UE_LOG(LogTemp, Warning, TEXT("NewSpear is null"));
+		return;
 	}
+
+	if (!CameraBoom) 
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CameraBoom is null"));
+		return;
+	}
+
+	FVector SpearTargetLocation = GetSpearTargetLocation();
+
+	float DeltaTime = GetWorld()->GetDeltaSeconds();
+	float RotationLerpSpeed = 10.0f;
+
+	FRotator CurrentRotation = NewSpear->GetActorRotation();
+	FRotator NewRotation = (SpearTargetLocation - NewSpear->GetActorLocation()).Rotation();
+	FRotator LerpedRotation = FMath::RInterpTo(CurrentRotation, NewRotation, DeltaTime, RotationLerpSpeed);
+
+	// Clamp the pitch rotation to a range of -50 to 50 degrees
+	LerpedRotation.Pitch = FMath::Clamp(LerpedRotation.Pitch, -50.0f, 50.0f);
+
+	NewSpear->SetActorRotation(LerpedRotation);
+
+	// Nudge Camera to Right
+	FVector RightVector = CameraBoom->GetRightVector();
+	FVector TargetOffset = RightVector * CameraNudgeMaxDistance;
+	FVector CurrentOffset = CameraBoom->TargetOffset;
+
+	// Interpolate the current offset towards the target offset
+	float InterpolationAlpha = FMath::Clamp(GetWorld()->GetDeltaSeconds() * CameraNudgeSpeed, 0.0f, 1.0f);
+	FVector NewOffset = FMath::VInterpTo(CurrentOffset, TargetOffset, InterpolationAlpha, CameraNudgeSpeed);
+
+	CameraBoom->TargetOffset = NewOffset;
 }
 
 FVector ASpearCharacter::GetSpearTargetLocation()
@@ -308,6 +324,11 @@ void ASpearCharacter::MoveCameraBoomBack()
 
 void ASpearCharacter::Recall(const FInputActionValue& Value)
 {
+	// Stop from recalling multiple spears at once
+	if (bRecalling) {
+		return;
+	}
+
 	// Get the forward vector of the character
 	FVector ForwardVector = FollowCamera->GetForwardVector();
 
@@ -322,20 +343,27 @@ void ASpearCharacter::Recall(const FInputActionValue& Value)
 
 	if (GetWorld()->LineTraceSingleByChannel(HitResult, CameraLocation, EndPoint, ECC_Visibility, QueryParams))
 	{
-		if (!HitResult.GetActor())
+		AActor* HitActor = HitResult.GetActor();
+		if (!HitActor)
 			return;
 
-		if (!HitResult.GetActor()->IsA(ASpearActor::StaticClass()))
+		if (!HitActor->IsA(ASpearActor::StaticClass()))
 			return;
 
-		HitSpear = Cast<ASpearActor>(HitResult.GetActor());
-		if (!HitSpear)
+		ASpearActor* TempHitSpear = Cast<ASpearActor>(HitActor);
+		if (!TempHitSpear)
 			return;
 
+		// Check if the spear is being recalled or is about to be destroyed
+		if (TempHitSpear->bIsBeingRecalled || !TempHitSpear->IsValidLowLevel())
+			return;
+
+		HitSpear = TempHitSpear;
 		HitSpear->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 		SpearStartingDistance = FVector::Distance(GetActorLocation(), HitSpear->GetActorLocation());
 		bRecalling = true;
 	}
+
 }
 
 void ASpearCharacter::RecallTick(float DeltaTime)
@@ -346,8 +374,33 @@ void ASpearCharacter::RecallTick(float DeltaTime)
 	// Calculate the distance to the player
 	float DistanceToPlayer = FVector::Distance(GetActorLocation(), HitSpear->GetActorLocation());
 
+	// Check if the player is touching the hit spear
+	bool bIsTouchingSpear = HitSpear->IsOverlappingActor(this);
+
+	if (DistanceToPlayer <= SpearDeleteDistance || bIsTouchingSpear)
+	{
+		// Spawn and play the Niagara particle
+		if (RecallPoofParticle)
+		{
+			FVector ParticleSpawnLocation = HitSpear->GetActorLocation();
+			FRotator ParticleSpawnRotation = FRotator::ZeroRotator;
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), RecallPoofParticle, ParticleSpawnLocation, ParticleSpawnRotation);
+		}
+
+		// Delete the spear actor after a short delay
+		HitSpear->SetLifeSpan(DeleteDelay);
+		HitSpear->bIsBeingRecalled = true;
+
+		// Reset
+		bRecalling = false;
+
+		// End recall on spear delete
+		HitSpear = nullptr;
+		return;
+	}
+
 	// Scale down the spear as it gets close to the player
-	float ScaleFactor = FMath::Clamp((DistanceToPlayer - SpearDeleteDistance) / (SpearStartingDistance - SpearDeleteDistance), 0.f, 1.f);
+	float ScaleFactor = FMath::Clamp((DistanceToPlayer - SpearDeleteDistance) / (SpearStartingDistance - SpearDeleteDistance), 0.f, MaxScaleFactor);
 	FVector NewScale = FVector::OneVector * ScaleFactor;
 	HitSpear->SetActorScale3D(NewScale);
 
@@ -364,19 +417,8 @@ void ASpearCharacter::RecallTick(float DeltaTime)
 	FVector NewLocation = HitSpear->GetActorLocation() + MoveOffset + ArcOffset;
 
 	HitSpear->SetActorLocation(NewLocation);
-
-	if (DistanceToPlayer <= SpearDeleteDistance)
-	{
-		// Scale down the spear to zero
-		HitSpear->SetActorScale3D(FVector::ZeroVector);
-
-		// Delete the spear actor after a short delay
-		HitSpear->SetLifeSpan(DeleteDelay);
-
-		HitSpear = nullptr; // Reset the reference to avoid using a destroyed actor
-		bRecalling = false; // Reset the recall flag
-	}
 }
+
 
 void ASpearCharacter::Swap(const FInputActionValue& Value)
 {
