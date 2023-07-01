@@ -43,6 +43,11 @@ ASpearActor::ASpearActor()
 	SpearTrailParticle->SetRelativeLocation(FVector::ZeroVector);
 	SpearTrailParticle->bAutoActivate = false;
 
+	SpearImpactParticle = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SpearImpactParticle"));
+	SpearImpactParticle->SetupAttachment(SpearMesh);
+	SpearImpactParticle->SetRelativeLocation(FVector::ZeroVector);
+	SpearImpactParticle->bAutoActivate = false;
+
 	// Audio Components
 	MetalBounceAudio = CreateDefaultSubobject<UAudioComponent>(TEXT("MetalBounceAudio"));
 	MetalBounceAudio->SetupAttachment(SpearMesh);
@@ -156,6 +161,11 @@ void ASpearActor::Tick(float DeltaTime)
 
 		if (ImpactAudio) {
 			ImpactAudio->Play();
+		}
+
+		// Play impact particles
+		if (SpearImpactParticle) {
+			SpearImpactParticle->Activate();
 		}
 
 		for (FConstPlayerControllerIterator PlayerControllerIt = GetWorld()->GetPlayerControllerIterator(); PlayerControllerIt; ++PlayerControllerIt)

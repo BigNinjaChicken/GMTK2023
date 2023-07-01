@@ -173,6 +173,13 @@ void ASpearCharacter::Throw(const FInputActionValue& Value)
 		return;
 	}
 
+	// Check if the cooldown is still active
+	if (bIsThrowOnCooldown)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Throw is on cooldown"));
+		return;
+	}
+
 	FVector SpawnLocation = GetActorLocation() + SpearSpawnOffset; // Adjust the Z-axis offset as needed
 	FVector SpearTargetLocation = GetSpearTargetLocation();
 
@@ -188,6 +195,15 @@ void ASpearCharacter::Throw(const FInputActionValue& Value)
 	// Attach the spear to the character
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepWorld, false);
 	NewSpear->AttachToComponent(SpearSpringArm, AttachmentRules);
+
+	// Start the cooldown timer
+	GetWorldTimerManager().SetTimer(ThrowCooldownTimerHandle, this, &ASpearCharacter::ResetThrowCooldown, CooldownDuration, false);
+	bIsThrowOnCooldown = true;
+}
+
+void ASpearCharacter::ResetThrowCooldown()
+{
+	bIsThrowOnCooldown = false;
 }
 
 void ASpearCharacter::ThrowOngoing(const FInputActionValue& Value)

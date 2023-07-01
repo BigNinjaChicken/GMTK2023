@@ -80,6 +80,7 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 	void Throw(const FInputActionValue& Value);
+	void ResetThrowCooldown();
 	void ThrowOngoing(const FInputActionValue& Value);
 	FVector GetSpearTargetLocation();
 	void ThrowComplete(const FInputActionValue& Value);
@@ -124,6 +125,13 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "G_SpearRecall")
 	double SpearDeleteDistance = 150.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_SpearRecall")
+	bool bIsThrowOnCooldown;
+	FTimerHandle ThrowCooldownTimerHandle;
+
+	UPROPERTY(EditAnywhere, Category = "G_SpearRecall")
+	float CooldownDuration = 0.5f;
 
 	void Swap(const FInputActionValue& Value);
 

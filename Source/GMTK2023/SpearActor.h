@@ -38,6 +38,9 @@ protected:
 	class UNiagaraComponent* SpearTrailParticle;
 
 	UPROPERTY(EditAnywhere, Category = "G_Effects")
+	class UNiagaraComponent* SpearImpactParticle;
+
+	UPROPERTY(EditAnywhere, Category = "G_Effects")
 	TSubclassOf<class UCameraShakeBase> SpearImpactCameraShakeBlueprint;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Audio")
