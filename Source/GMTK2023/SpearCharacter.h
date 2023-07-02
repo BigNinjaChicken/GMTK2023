@@ -107,6 +107,7 @@ protected:
 	void Recall(const FInputActionValue& Value);
 	void RecallTick(float DeltaTime);
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_SpearRecall")
 	bool bRecalling = false;
 	ASpearActor* HitSpear;
 	double SpearStartingDistance;

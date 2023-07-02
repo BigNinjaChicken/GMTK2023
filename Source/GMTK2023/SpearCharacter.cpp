@@ -69,6 +69,7 @@ void ASpearCharacter::Tick(float DeltaTime)
 	RecallTick(DeltaTime);
 }
 
+// BeginPlay Equivalent
 void ASpearCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);

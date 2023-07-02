@@ -81,7 +81,10 @@ public:
 	float OffsetFromWall = 80.0f;
 
 	void PlaySpearThrowEffects();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Throw")
 	bool bHasThrownEffectsPlayed;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Throw")
 	bool bIsBeingRecalled = false;
 };
