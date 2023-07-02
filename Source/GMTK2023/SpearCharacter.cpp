@@ -84,10 +84,6 @@ void ASpearCharacter::PossessedBy(AController* NewController)
 		}
 	}
 
-	// Switch input mode back to game input
-	FInputModeGameOnly InputMode;
-	PlayerController->SetInputMode(InputMode);
-
 	if (IsLocallyControlled())
 	{
 		// Create widget
@@ -231,7 +227,7 @@ void ASpearCharacter::ThrowOngoing(const FInputActionValue& Value)
 	FRotator LerpedRotation = FMath::RInterpTo(CurrentRotation, NewRotation, DeltaTime, RotationLerpSpeed);
 
 	// Clamp the pitch rotation to a range of -50 to 50 degrees
-	LerpedRotation.Pitch = FMath::Clamp(LerpedRotation.Pitch, -50.0f, 50.0f);
+	LerpedRotation.Pitch = FMath::Clamp(LerpedRotation.Pitch, -40.0f, 50.0f);
 
 	NewSpear->SetActorRotation(LerpedRotation);
 

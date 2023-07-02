@@ -20,6 +20,9 @@ protected:
 
 public:
 	UPROPERTY(EditAnywhere, Category = "G_LevelSequence")
+    bool bShouldPlayCutscene = true;
+
+	UPROPERTY(EditAnywhere, Category = "G_LevelSequence")
     class ULevelSequence* LevelSequence;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_LevelSequence")
@@ -27,4 +30,7 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_LevelSequence")
     class ALevelSequenceActor* SequenceActor;
+
+	UFUNCTION()
+	void OnSequenceFinished();
 };
