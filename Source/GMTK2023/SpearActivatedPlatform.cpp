@@ -42,7 +42,15 @@ void ASpearActivatedPlatform::Tick(float DeltaTime)
 		return;
 	}
 
-	MoveToNextLocation(DeltaTime);
+	if (bOnlyMovesToFinalLocationOnce) {
+		// Stop moving once the platform needs to backtrack
+		if (bCountingUp) {
+			MoveToNextLocation(DeltaTime);
+		}
+	}
+	else {
+		MoveToNextLocation(DeltaTime);
+	}
 }
 
 

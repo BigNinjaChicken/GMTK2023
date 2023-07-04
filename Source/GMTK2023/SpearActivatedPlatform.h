@@ -32,6 +32,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "G_Movement")
 	bool bIsAlwaysMoving = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "G_Movement")
+	bool bOnlyMovesToFinalLocationOnce = false;
+
 
 private:
 	int32 TargetLocationIndex = 0;
