@@ -37,19 +37,22 @@ void ASpearActivatedPlatform::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (!bIsAlwaysMoving && !IsTouchingSpearActor())
+	if (bIsAlwaysMoving)
 	{
-		return;
-	}
-
-	if (bOnlyMovesToFinalLocationOnce) {
-		// Stop moving once the platform needs to backtrack
-		if (bCountingUp) {
-			MoveToNextLocation(DeltaTime);
-		}
+		MoveToNextLocation(DeltaTime);
 	}
 	else {
-		MoveToNextLocation(DeltaTime);
+		if (IsTouchingSpearActor()) {
+			if (bOnlyMovesToFinalLocationOnce) {
+				// Stop moving once the platform needs to backtrack
+				if (bCountingUp) {
+					MoveToNextLocation(DeltaTime);
+				}
+			}
+			else {
+				MoveToNextLocation(DeltaTime);
+			}
+		}
 	}
 }
 
