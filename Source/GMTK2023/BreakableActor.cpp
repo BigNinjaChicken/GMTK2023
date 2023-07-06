@@ -3,6 +3,7 @@
 #include "Components/PrimitiveComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "SpearActor.h"
+#include <../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraFunctionLibrary.h>
 
 // Sets default values
 ABreakableActor::ABreakableActor()
@@ -17,10 +18,6 @@ ABreakableActor::ABreakableActor()
 	// Enable overlap events for the mesh component
 	MeshComponent->SetGenerateOverlapEvents(true);
 	MeshComponent->SetCollisionProfileName(TEXT("BlockAllDynamic"));
-
-	// Set default values for particle effect and sound
-	ParticleEffect = nullptr;
-	BreakSound = nullptr;
 }
 
 // Called when the game starts or when spawned
@@ -45,9 +42,11 @@ void ABreakableActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor
 	if (OtherActor && OtherActor->IsA(ASpearActor::StaticClass()))
 	{
 		// Spawn the particle effect at the actor's location
-		if (ParticleEffect)
+		if (DestroyParticles)
 		{
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParticleEffect, GetActorTransform().GetLocation());
+			FVector ParticleSpawnLocation = GetActorLocation();
+			FRotator ParticleSpawnRotation = FRotator::ZeroRotator;
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), DestroyParticles, ParticleSpawnLocation, ParticleSpawnRotation);
 		}
 
 		// Play the sound

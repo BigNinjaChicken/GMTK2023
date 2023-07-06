@@ -33,6 +33,7 @@ ASpearActor::ASpearActor()
 
 	SpearTipHitbox = CreateDefaultSubobject<UCapsuleComponent>(TEXT("SpearTipHitbox"));
 	SpearTipHitbox->SetupAttachment(SpearCollision);
+	SpearTipHitbox->OnComponentBeginOverlap.AddDynamic(this, &ASpearActor::OnSpearCollisionBeginOverlap);
 
 	// Create Particle components
 	SpearEmittionParticle = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SpearEmittionParticle"));
@@ -81,7 +82,7 @@ void ASpearActor::Tick(float DeltaTime)
 
 	if (!bIsThrown)
 	{
-		// Do not continue is spear is not thrown
+		// Do not continue if spear is not thrown
 		return;
 	}
 
@@ -102,91 +103,80 @@ void ASpearActor::Tick(float DeltaTime)
 
 	// Update the spear's location
 	SetActorLocation(CurrentLocation);
+}
 
-	// Perform raycast to check if the SpearTipHitbox touches something
-	FHitResult HitResult;
-	FVector StartLocation = GetActorLocation();
-	FVector EndLocation = StartLocation + ForwardVector * ThrowStrength * DeltaTime;
+void ASpearActor::OnSpearCollisionBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	FString CollidedActorName = OtherActor ? OtherActor->GetName() : TEXT("Unknown Actor");
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Collided with: %s"), *CollidedActorName));
 
-	// Ignore collisions with the owner of the spear
-	FCollisionQueryParams CollisionParams;
-	CollisionParams.AddIgnoredActor(this);
-
-	if (GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Visibility, CollisionParams))
+	if (!bIsThrown)
 	{
-		AActor* HitActor = HitResult.GetActor();
-		if (!HitActor)
-			return;
+		// Do not continue if spear is not thrown
+		return;
+	}
 
-		// Stop spears from being stacked on each other
-		if (ASpearActor* SpearHitActor = Cast<ASpearActor>(HitActor))
-		{
-			// Destroy the SpearActor
-			DestroyWithEffects();
-		}
+	// Stop spears from being stacked on each other
+	if (ASpearActor* SpearHitActor = Cast<ASpearActor>(OtherActor))
+	{
+		// Destroy the SpearActor
+		DestroyWithEffects();
+		return;
+	}
 
-		UHardObject* HardObject = HitActor->GetComponentByClass<UHardObject>();
-		if (HardObject)
-		{
-			// The SpearTipHitbox touched a "Hard" tagged object, simulate bounce
+	UHardObject* HardObject = OtherActor->GetComponentByClass<UHardObject>();
+	if (HardObject)
+	{
+		// The SpearCollision touched a "Hard" tagged object, simulate bounce
 
-			// Calculate the reflection direction
-			FVector IncomingDirection = ForwardVector;
-			FVector Normal = HitResult.Normal;
-			FVector ReflectedDirection = IncomingDirection - 2 * FVector::DotProduct(IncomingDirection, Normal) * Normal;
+		FVector IncomingDirection = GetActorForwardVector();
+		FVector Normal = SweepResult.Normal;
+		FVector ReflectedDirection = IncomingDirection - 2 * FVector::DotProduct(IncomingDirection, Normal) * Normal;
 
-			// Rotate the spear to face the reflected direction
-			FRotator NewRotation = ReflectedDirection.Rotation();
-			SetActorRotation(NewRotation);
-
-			// Sound
-			MetalBounceAudio->Play();
-
-			return;
-		}
-
-		// The SpearTipHitbox touched something, stop moving and get stuck in the object it hit
-		bIsThrown = false;
-		SetActorLocation(HitResult.Location);
-
-		FVector WallNormal = HitResult.Normal;
-
-		// Rotate Actor to look into the hit location
-		FRotator NewRotation = WallNormal.Rotation();
-		NewRotation.Pitch = -NewRotation.Pitch;
-		NewRotation.Yaw += 180.0f;
+		FRotator NewRotation = ReflectedDirection.Rotation();
 		SetActorRotation(NewRotation);
 
-		// Calculate the new location to adjust the spear into the wall
-		FVector WallOffset = WallNormal * OffsetFromWall;
-		FVector NewLocation = HitResult.Location + WallOffset;
-		SetActorLocation(NewLocation);
+		// Sound
+		MetalBounceAudio->Play();
 
-		// Attach the spear to the actor it hit
-		AttachToActor(HitActor, FAttachmentTransformRules::KeepWorldTransform);
+		return;
+	}
 
-		// Impact Camera Shake
-		FVector ShakeLocation = GetActorLocation();
+	// The SpearCollision touched something, stop moving and get stuck in the object it hit
+	bIsThrown = false;
+	SetActorLocation(SweepResult.Location);
 
-		if (ImpactAudio) {
-			ImpactAudio->Play();
-		}
+	FVector WallNormal = SweepResult.Normal;
 
-		// Play impact particles
-		if (SpearImpactParticle) {
-			SpearImpactParticle->Activate();
-		}
+	FRotator NewRotation = WallNormal.Rotation();
+	NewRotation.Pitch = -NewRotation.Pitch;
+	NewRotation.Yaw += 180.0f;
+	SetActorRotation(NewRotation);
 
-		for (FConstPlayerControllerIterator PlayerControllerIt = GetWorld()->GetPlayerControllerIterator(); PlayerControllerIt; ++PlayerControllerIt)
-		{
-			APlayerController* PlayerController = PlayerControllerIt->Get();
-			APlayerCameraManager* PlayerCameraManager = PlayerController->PlayerCameraManager;
-			PlayerCameraManager->StartCameraShake(SpearImpactCameraShakeBlueprint);
-		}
+	FVector WallOffset = WallNormal * OffsetFromWall;
+	FVector NewLocation = SweepResult.Location + WallOffset;
+	SetActorLocation(NewLocation);
 
-		// Print the collided actor's name to the screen
-		// FString CollidedActorName = HitResult.GetActor() != nullptr ? HitResult.GetActor()->GetName() : TEXT("Unknown Actor");
-		// GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Collided with: %s"), *CollidedActorName));
+	AttachToActor(OtherActor, FAttachmentTransformRules::KeepWorldTransform);
+
+	// Impact Camera Shake
+	FVector ShakeLocation = GetActorLocation();
+
+	if (ImpactAudio)
+	{
+		ImpactAudio->Play();
+	}
+
+	if (SpearImpactParticle)
+	{
+		SpearImpactParticle->Activate();
+	}
+
+	for (FConstPlayerControllerIterator PlayerControllerIt = GetWorld()->GetPlayerControllerIterator(); PlayerControllerIt; ++PlayerControllerIt)
+	{
+		APlayerController* PlayerController = PlayerControllerIt->Get();
+		APlayerCameraManager* PlayerCameraManager = PlayerController->PlayerCameraManager;
+		PlayerCameraManager->StartCameraShake(SpearImpactCameraShakeBlueprint);
 	}
 }
 

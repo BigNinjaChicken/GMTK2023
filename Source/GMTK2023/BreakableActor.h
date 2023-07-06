@@ -18,8 +18,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
-		class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 public:
 	// Called every frame
@@ -29,7 +28,7 @@ public:
 	class UStaticMeshComponent* MeshComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "G_Effects")
-	class UParticleSystem* ParticleEffect;
+	class UNiagaraSystem* DestroyParticles;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "G_Audio")
 	class USoundBase* BreakSound;
