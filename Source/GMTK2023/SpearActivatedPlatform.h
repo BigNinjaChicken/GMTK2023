@@ -18,10 +18,10 @@ public:
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UStaticMeshComponent* PlatformMesh;
+	class USceneComponent* RootSceneComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UParticleSystemComponent* ParticleSystemComponent;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
+	class UStaticMeshComponent* PlatformMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "G_Movement", meta = (MakeEditWidget = true))
 	TArray<FVector> PlatformLocations;

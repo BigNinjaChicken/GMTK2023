@@ -1,9 +1,9 @@
 #include "SpearActivatedPlatform.h"
 #include "Components/StaticMeshComponent.h"
-#include "Particles/ParticleSystemComponent.h"
 #include <Components/SceneComponent.h>
 #include "SpearActor.h"
 #include "Kismet/GameplayStatics.h"
+#include <Components/SceneComponent.h>
 
 
 // Sets default values
@@ -11,13 +11,12 @@ ASpearActivatedPlatform::ASpearActivatedPlatform()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	RootSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+	SetRootComponent(RootSceneComponent);
+
 	// Create a static mesh component as the visual representation of the platform
 	PlatformMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlatformMesh"));
-	SetRootComponent(PlatformMesh);
-
-	// Create a particle system component
-	ParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
-	ParticleSystemComponent->SetupAttachment(GetRootComponent());
+	PlatformMesh->SetupAttachment(GetRootComponent());
 }
 
 // Called when the game starts or when spawned
@@ -71,8 +70,6 @@ void ASpearActivatedPlatform::MoveToNextLocation(float DeltaTime)
 	{
 		return;
 	}
-
-	ParticleSystemComponent->Activate();
 
 	FVector CurrentLocation = GetActorLocation();
 	FVector TargetLocation = PlatformLocations[TargetLocationIndex];

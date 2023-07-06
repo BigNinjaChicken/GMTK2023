@@ -8,6 +8,6 @@ public class GMTK2023 : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "EnhancedInput", "OnlineSubsystemEOS", "OnlineSubsystem", "OnlineSubsystemUtils", "UMG", "Niagara", "LevelSequence", "MovieScene", "MovieSceneTracks" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "EnhancedInput", "OnlineSubsystemEOS", "OnlineSubsystem", "OnlineSubsystemUtils", "UMG", "Niagara", "LevelSequence", "MovieScene", "MovieSceneTracks", "AIModule", "StateTreeModule", "GameplayStateTreeModule"});
 	}
 }
