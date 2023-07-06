@@ -11,7 +11,6 @@ enum class EBossFightPhase : uint8
 {
     Phase1,
     Phase2,
-    Phase3,
 	NotStarted
 };
 
@@ -42,11 +41,15 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	// Methods
+	UFUNCTION()
 	void OnCrystalMeshBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	void BeginPhase1();
 	void BeginPhase2();
 	void BeginPhase3();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "G_Boss")
+    void OnBossPhaseChanged(EBossFightPhase NewPhase);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	EBossFightPhase CurrentPhase = EBossFightPhase::NotStarted;

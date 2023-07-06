@@ -181,6 +181,7 @@ void ASpearCharacter::Throw(const FInputActionValue& Value)
 	FVector SpearTargetLocation = GetSpearTargetLocation();
 
 	FRotator SpawnRotation = (SpearTargetLocation - SpawnLocation).Rotation();
+	NewSpear = nullptr;
 	NewSpear = GetWorld()->SpawnActor<ASpearActor>(SpearActorBlueprint, SpawnLocation, SpawnRotation);
 
 	if (!NewSpear)
@@ -205,6 +206,7 @@ void ASpearCharacter::ResetThrowCooldown()
 
 void ASpearCharacter::ThrowOngoing(const FInputActionValue& Value)
 {
+
 	if (!NewSpear)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("NewSpear is null"));
@@ -288,6 +290,8 @@ void ASpearCharacter::ThrowComplete(const FInputActionValue& Value)
 	// Detach the spear from the character
 	NewSpear->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	NewSpear->bIsThrown = true;
+	// Stop player from accessing once thrown
+	NewSpear = nullptr;
 
 	ECameraShakePlaySpace PlaySpace = ECameraShakePlaySpace::CameraLocal;
 	APlayerCameraManager* CameraManager = Cast<APlayerController>(Controller)->PlayerCameraManager;

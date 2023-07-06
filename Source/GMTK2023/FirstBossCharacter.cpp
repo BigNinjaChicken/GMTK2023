@@ -28,6 +28,12 @@ AFirstBossCharacter::AFirstBossCharacter()
 // OnBeginOverlap event handler for CrystalMeshComponent
 void AFirstBossCharacter::OnCrystalMeshBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+
+	// Print phase change message to screen
+	// FString PhaseString = UEnum::GetValueAsString(CurrentPhase);
+	// FString Message = FString::Printf(TEXT("Boss phase changed to: %s"), *PhaseString);
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Here"));
+
 	if (!OtherActor && !OtherActor->IsA(ASpearActor::StaticClass()))
 	{
 		return;
@@ -36,12 +42,25 @@ void AFirstBossCharacter::OnCrystalMeshBeginOverlap(UPrimitiveComponent* Overlap
 	if (CurrentPhase == EBossFightPhase::NotStarted) {
 		CurrentPhase = EBossFightPhase::Phase1;
 		BeginPhase1();
+		OnBossPhaseChanged(CurrentPhase);
+
+	}
+
+	if (CurrentPhase == EBossFightPhase::Phase1) {
+		CurrentPhase = EBossFightPhase::Phase2;
+		BeginPhase2();
+		OnBossPhaseChanged(CurrentPhase);
+	}
+
+	if (CurrentPhase == EBossFightPhase::Phase2) {
+		BeginPhase3();
+		OnBossPhaseChanged(CurrentPhase);
 	}
 }
 
 void AFirstBossCharacter::BeginPhase1()
 {
-
+	
 }
 
 void AFirstBossCharacter::BeginPhase2()
