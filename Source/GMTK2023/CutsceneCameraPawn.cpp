@@ -110,6 +110,10 @@ void ACutsceneCameraPawn::RunCutscene(float DeltaTime)
 
 void ACutsceneCameraPawn::CompleteCutscene()
 {
+
+	// Log the completion of the cutscene
+	UE_LOG(LogTemp, Warning, TEXT("Cutscene complete. SpearCharacter spawned and possessed."));
+
 	// Spawn the ASpearCharacter
 	FVector SpawnLocation = GetActorLocation();
 	FRotator SpawnRotation = FRotator::ZeroRotator; // Reset rotation to zero
@@ -121,5 +125,6 @@ void ACutsceneCameraPawn::CompleteCutscene()
 		// Possess the SpearCharacter with the player controller
 		APlayerController* PlayerController = Cast<APlayerController>(Controller);
 		PlayerController->Possess(SpearCharacter);
+
 	}
 }
