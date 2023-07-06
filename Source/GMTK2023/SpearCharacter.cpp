@@ -287,6 +287,9 @@ FVector ASpearCharacter::GetSpearTargetLocation()
 
 void ASpearCharacter::ThrowComplete(const FInputActionValue& Value)
 {
+	if (!NewSpear)
+		return;
+
 	// Detach the spear from the character
 	NewSpear->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	NewSpear->bIsThrown = true;

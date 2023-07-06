@@ -44,6 +44,7 @@ public:
 	UFUNCTION()
 	void OnCrystalMeshBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
+	void ApplyForceToPlayer();
 	void BeginPhase1();
 	void BeginPhase2();
 	void BeginPhase3();
@@ -53,4 +54,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	EBossFightPhase CurrentPhase = EBossFightPhase::NotStarted;
+
+	UPROPERTY(EditAnywhere, Category = "G_KnockbackPlayer")
+	float XYForce = 100.0f;
+
+	UPROPERTY(EditAnywhere, Category = "G_KnockbackPlayer")
+	float ZForce = 10.0f;
 };

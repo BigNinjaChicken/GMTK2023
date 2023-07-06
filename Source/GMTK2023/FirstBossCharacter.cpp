@@ -7,6 +7,9 @@
 #include "Components/SkeletalMeshComponent.h"
 #include <../Plugins/FX/Niagara/Source/Niagara/Classes/NiagaraSystem.h>
 #include <../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h>
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/Character.h"
+#include <GameFramework/CharacterMovementComponent.h>
 
 
 // Sets default values
@@ -28,39 +31,54 @@ AFirstBossCharacter::AFirstBossCharacter()
 // OnBeginOverlap event handler for CrystalMeshComponent
 void AFirstBossCharacter::OnCrystalMeshBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-
-	// Print phase change message to screen
-	// FString PhaseString = UEnum::GetValueAsString(CurrentPhase);
-	// FString Message = FString::Printf(TEXT("Boss phase changed to: %s"), *PhaseString);
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Here"));
-
-	if (!OtherActor && !OtherActor->IsA(ASpearActor::StaticClass()))
-	{
+	if (!OtherActor)
 		return;
-	}
+
+	ASpearActor* HitSpearActor = Cast<ASpearActor>(OtherActor);
+	if (!HitSpearActor)
+		return;
 
 	if (CurrentPhase == EBossFightPhase::NotStarted) {
 		CurrentPhase = EBossFightPhase::Phase1;
 		BeginPhase1();
-		OnBossPhaseChanged(CurrentPhase);
-
 	}
 
 	if (CurrentPhase == EBossFightPhase::Phase1) {
 		CurrentPhase = EBossFightPhase::Phase2;
 		BeginPhase2();
-		OnBossPhaseChanged(CurrentPhase);
 	}
 
 	if (CurrentPhase == EBossFightPhase::Phase2) {
 		BeginPhase3();
-		OnBossPhaseChanged(CurrentPhase);
+	}
+
+	// Play Shake Animation
+	OnBossPhaseChanged(CurrentPhase);
+	// Break the Spear
+	HitSpearActor->DestroyWithEffects();
+	// Push player off top
+	ApplyForceToPlayer();
+}
+
+void AFirstBossCharacter::ApplyForceToPlayer()
+{
+	ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(this, 0);
+	if (PlayerCharacter)
+	{
+		FVector Direction = PlayerCharacter->GetActorLocation() - GetActorLocation();
+		Direction.Normalize();
+
+		FVector Force = Direction * XYForce;
+		Force.Z = ZForce;
+
+		// Apply the force to the player character
+		PlayerCharacter->GetCharacterMovement()->AddImpulse(Force);
 	}
 }
 
 void AFirstBossCharacter::BeginPhase1()
 {
-	
+
 }
 
 void AFirstBossCharacter::BeginPhase2()
