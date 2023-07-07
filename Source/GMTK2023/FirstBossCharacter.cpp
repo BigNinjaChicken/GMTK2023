@@ -55,7 +55,6 @@ void AFirstBossCharacter::OnCrystalMeshBeginOverlap(UPrimitiveComponent* Overlap
 		break;
 	}
 
-
 	// Play Shake Animation
 	OnBossPhaseChanged(CurrentPhase);
 	// Break the Spear

@@ -4,6 +4,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "SpearActor.h"
 #include <../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraFunctionLibrary.h>
+#include <Components/SceneComponent.h>
 
 // Sets default values
 ABreakableActor::ABreakableActor()
@@ -11,9 +12,12 @@ ABreakableActor::ABreakableActor()
 	// Set this actor to call Tick() every frame
 	PrimaryActorTick.bCanEverTick = true;
 
+	RootSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+	SetRootComponent(RootSceneComponent);
+
 	// Create the mesh component and set it as the root component
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
-	RootComponent = MeshComponent;
+	MeshComponent->SetupAttachment(GetRootComponent());
 
 	// Enable overlap events for the mesh component
 	MeshComponent->SetGenerateOverlapEvents(true);
@@ -44,9 +48,9 @@ void ABreakableActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor
 		// Spawn the particle effect at the actor's location
 		if (DestroyParticles)
 		{
-			FVector ParticleSpawnLocation = GetActorLocation();
-			FRotator ParticleSpawnRotation = FRotator::ZeroRotator;
-			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), DestroyParticles, ParticleSpawnLocation, ParticleSpawnRotation);
+			FVector ParticleLocation = GetActorLocation() + ParticleSpawnLocation;
+			FRotator ParticleRotation = FRotator::ZeroRotator;
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), DestroyParticles, ParticleLocation, ParticleRotation);
 		}
 
 		// Play the sound

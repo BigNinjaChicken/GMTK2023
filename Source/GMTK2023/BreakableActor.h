@@ -24,11 +24,17 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
+	class USceneComponent* RootSceneComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	class UStaticMeshComponent* MeshComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "G_Effects")
 	class UNiagaraSystem* DestroyParticles;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "G_Effects", meta = (MakeEditWidget = true))
+	FVector ParticleSpawnLocation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "G_Audio")
 	class USoundBase* BreakSound;
