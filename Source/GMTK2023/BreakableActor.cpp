@@ -48,7 +48,7 @@ void ABreakableActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor
 		// Spawn the particle effect at the actor's location
 		if (DestroyParticles)
 		{
-			FVector ParticleLocation = GetActorLocation() + ParticleSpawnLocation;
+			FVector ParticleLocation = MeshComponent->GetComponentLocation() + ParticleSpawnLocation;
 			FRotator ParticleRotation = FRotator::ZeroRotator;
 			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), DestroyParticles, ParticleLocation, ParticleRotation);
 		}
