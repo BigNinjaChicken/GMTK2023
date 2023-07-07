@@ -38,19 +38,23 @@ void AFirstBossCharacter::OnCrystalMeshBeginOverlap(UPrimitiveComponent* Overlap
 	if (!HitSpearActor)
 		return;
 
-	if (CurrentPhase == EBossFightPhase::NotStarted) {
+	switch (CurrentPhase)
+	{
+	case EBossFightPhase::NotStarted:
 		CurrentPhase = EBossFightPhase::Phase1;
 		BeginPhase1();
-	}
+		break;
 
-	if (CurrentPhase == EBossFightPhase::Phase1) {
+	case EBossFightPhase::Phase1:
 		CurrentPhase = EBossFightPhase::Phase2;
 		BeginPhase2();
+		break;
+
+	case EBossFightPhase::Phase2:
+		BeginPhase3();
+		break;
 	}
 
-	if (CurrentPhase == EBossFightPhase::Phase2) {
-		BeginPhase3();
-	}
 
 	// Play Shake Animation
 	OnBossPhaseChanged(CurrentPhase);
@@ -88,7 +92,11 @@ void AFirstBossCharacter::BeginPhase2()
 
 void AFirstBossCharacter::BeginPhase3()
 {
+	ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(this, 0);
 
+	// Specify the level name to load
+	FString LevelName = "LV_Login";
+	UGameplayStatics::OpenLevel(this, *LevelName, true);
 }
 
 // Called when the game starts or when spawned
