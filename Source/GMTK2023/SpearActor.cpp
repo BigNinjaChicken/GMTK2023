@@ -72,6 +72,9 @@ ASpearActor::ASpearActor()
 void ASpearActor::BeginPlay()
 {
 	Super::BeginPlay();
+
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ASpearActor::DestroyWithEffects, 30.0f, false);
 }
 
 // Called every frame
@@ -126,11 +129,10 @@ void ASpearActor::Tick(float DeltaTime)
 			DestroyWithEffects();
 		}
 
-		UHardObject* HardObject = HitActor->GetComponentByClass<UHardObject>();
-		if (HardObject)
+		// UHardObject* HardObject = HitActor->GetComponentByClass<UHardObject>();
+		// Reflect Spear if object is not Dirt
+		if (!HitActor->ActorHasTag(FName("Dirt")))
 		{
-			// The SpearTipHitbox touched a "Hard" tagged object, simulate bounce
-
 			// Calculate the reflection direction
 			FVector IncomingDirection = ForwardVector;
 			FVector Normal = HitResult.Normal;
