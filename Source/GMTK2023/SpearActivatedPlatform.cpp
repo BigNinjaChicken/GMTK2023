@@ -81,9 +81,23 @@ void ASpearActivatedPlatform::MoveToNextLocation(float DeltaTime)
 
 	if (FVector::PointsAreNear(CurrentLocation, TargetLocation, 1.0f))
 	{
-		bCountingUp = (TargetLocationIndex >= PlatformLocations.Num() - 1) ? false : (TargetLocationIndex <= 0) ? true : bCountingUp;
-		TargetLocationIndex = bCountingUp ? TargetLocationIndex + 1 : TargetLocationIndex - 1;
+		if (bCountingUp)
+		{
+			TargetLocationIndex++;
+			if (TargetLocationIndex >= PlatformLocations.Num())
+			{
+				TargetLocationIndex = PlatformLocations.Num() - 1;
+				bCountingUp = false;
+			}
+		}
+		else
+		{
+			TargetLocationIndex--;
+			if (TargetLocationIndex < 0)
+			{
+				TargetLocationIndex = 0;
+				bCountingUp = true;
+			}
+		}
 	}
-
-
 }
