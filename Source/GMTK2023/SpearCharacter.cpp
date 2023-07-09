@@ -60,8 +60,10 @@ ASpearCharacter::ASpearCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
-	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
-	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+	PickUpCollectableParticle = CreateDefaultSubobject<UNiagaraComponent>(TEXT("PickUpCollectableParticle"));
+	PickUpCollectableParticle->SetupAttachment(RootComponent);
+	PickUpCollectableParticle->SetRelativeLocation(FVector::ZeroVector);
+	PickUpCollectableParticle->bAutoActivate = false;
 }
 
 void ASpearCharacter::Tick(float DeltaTime)
@@ -446,4 +448,12 @@ void ASpearCharacter::Swap(const FInputActionValue& Value)
 
 }
 
+void ASpearCharacter::PickedUpCollectible()
+{
+	if (PickUpCollectableParticle) {
+		PickUpCollectableParticle->Activate();
+	}
+
+	CollectiblesPickedUp++;
+}
 

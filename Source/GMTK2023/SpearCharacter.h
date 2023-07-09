@@ -64,6 +64,9 @@ class GMTK2023_API ASpearCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, Category = "G_Effects")
 	class UNiagaraSystem* RecallPoofParticle;
 
+	UPROPERTY(EditAnywhere, Category = "G_Effects")
+	class UNiagaraComponent* PickUpCollectableParticle;
+
 public:
 	ASpearCharacter();
 
@@ -135,6 +138,13 @@ protected:
 	float CooldownDuration = 0.5f;
 
 	void Swap(const FInputActionValue& Value);
+
+public:
+	void PickedUpCollectible();
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Collectible")
+	int32 CollectiblesPickedUp = 0;
 
 protected:
 	// APawn interface
