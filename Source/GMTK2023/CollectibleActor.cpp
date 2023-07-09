@@ -92,6 +92,8 @@ void ACollectibleActor::OnBeginOverlapSphere(UPrimitiveComponent* OverlappedComp
 	bBraveLoopingSound = false;
 	PlayScaredAudio();
 	BraveAudio->Stop();
+
+	CarrotCryParticle->Activate();
 }
 
 void ACollectibleActor::OnEndOverlapSphere(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -103,6 +105,8 @@ void ACollectibleActor::OnEndOverlapSphere(UPrimitiveComponent* OverlappedCompon
 	bBraveLoopingSound = true;
 	PlayBraveAudio();
 	ScaredAudio->Stop();
+
+	CarrotCryParticle->Deactivate();
 }
 
 
