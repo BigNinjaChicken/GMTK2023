@@ -68,7 +68,7 @@ void ACollectibleActor::OnBeginOverlapMesh(UPrimitiveComponent* OverlappedCompon
 		return;
 	}
 
-	if (Tags.Contains(FName("Dirt"))) {
+	if (bScaredLoopingSound) {
 		OverlappingSpear->DestroyWithEffects();
 
 		APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
@@ -85,24 +85,24 @@ void ACollectibleActor::OnBeginOverlapMesh(UPrimitiveComponent* OverlappedCompon
 
 void ACollectibleActor::OnBeginOverlapSphere(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Here"));
+	if (!OtherActor->IsA(APlayerController::StaticClass()))
+		return;
 
 	bScaredLoopingSound = true;
 	bBraveLoopingSound = false;
 	PlayScaredAudio();
 	BraveAudio->Stop();
-	Tags.Add(FName("Dirt"));
 }
 
 void ACollectibleActor::OnEndOverlapSphere(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Here"));
+	if (!OtherActor->IsA(APlayerController::StaticClass()))
+		return;
 
 	bScaredLoopingSound = false;
 	bBraveLoopingSound = true;
 	PlayBraveAudio();
 	ScaredAudio->Stop();
-	Tags.Remove(FName("Dirt"));
 }
 
 
