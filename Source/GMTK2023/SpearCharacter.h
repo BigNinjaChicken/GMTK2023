@@ -49,11 +49,17 @@ class GMTK2023_API ASpearCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* SwapAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* TalkAction;
+
 	UPROPERTY(EditDefaultsOnly, Category = "G_Spear")
 	TSubclassOf<class ASpearActor> SpearActorBlueprint;
 
 	UPROPERTY(EditAnywhere, Category = "G_UI")
 	TSubclassOf<class UUserWidget> CrosshairWidgetBlueprint;
+
+	UPROPERTY(EditAnywhere, Category = "G_UI")
+	TSubclassOf<class UUserWidget> DialogueWidgetBlueprint;
 
 	UPROPERTY(EditAnywhere, Category = "G_Spear")
 	TSubclassOf<class UCameraShakeBase> SpearHoldingCameraShakeBlueprint;
@@ -82,6 +88,7 @@ protected:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 
+	// Throw
 	void Throw(const FInputActionValue& Value);
 	void ResetThrowCooldown();
 	void ThrowOngoing(const FInputActionValue& Value);
@@ -107,6 +114,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "G_SpearThrow")
 	float CameraNudgeSpeed = 1.0f;
 
+	// Recall
 	void Recall(const FInputActionValue& Value);
 	void RecallTick(float DeltaTime);
 
@@ -137,13 +145,38 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "G_SpearRecall")
 	float CooldownDuration = 0.5f;
 
+	// Swap
 	void Swap(const FInputActionValue& Value);
 
+	// Talk
+	void Talk(const FInputActionValue& Value);
+
+	UUserWidget* DialogueUserWidget;
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "G_Talk")
+	void UpdateDialogText(const FText& InputText, class UUserWidget* InDialogueUserWidget);
+
+	bool bHasEnteredDialogue = false;
+	int32 CurrentDialogueIndex = 0;
+
+	void DisplayDialogueText(class ADialogueCharacter* CurrentDialogueCharacter);
+
+	void TickDialogueCamera(float DeltaTime);
+
+	FTransform TargetCameraTransform;
+
+	UPROPERTY(EditAnywhere, Category = "G_Talk")
+    float CameraLerpSpeed = 5.0f;
+
+    UPROPERTY(EditAnywhere, Category = "G_Talk")
+    float CameraLerpThreshold = 0.05f;
+
+	FTransform StaringCameraTransform;
 public:
 	void PickedUpCollectible();
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "G_Collectible")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "G_Collectible")
 	int32 CollectiblesPickedUp = 0;
 
 protected:

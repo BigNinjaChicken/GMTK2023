@@ -85,7 +85,7 @@ void ACollectibleActor::OnBeginOverlapMesh(UPrimitiveComponent* OverlappedCompon
 
 void ACollectibleActor::OnBeginOverlapSphere(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (!OtherActor->IsA(APlayerController::StaticClass()))
+	if (!OtherActor->IsA(ASpearCharacter::StaticClass()))
 		return;
 
 	bScaredLoopingSound = true;
@@ -96,7 +96,7 @@ void ACollectibleActor::OnBeginOverlapSphere(UPrimitiveComponent* OverlappedComp
 
 void ACollectibleActor::OnEndOverlapSphere(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (!OtherActor->IsA(APlayerController::StaticClass()))
+	if (!OtherActor->IsA(ASpearCharacter::StaticClass()))
 		return;
 
 	bScaredLoopingSound = false;

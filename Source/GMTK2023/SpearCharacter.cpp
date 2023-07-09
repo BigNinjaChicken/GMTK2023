@@ -22,6 +22,8 @@
 #include "NiagaraSystem.h"
 #include <../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraActor.h>
 #include <UObject/UObjectGlobals.h>
+#include "DialogueCharacter.h"
+#include <GameFramework/PlayerController.h>
 
 
 ASpearCharacter::ASpearCharacter()
@@ -69,6 +71,7 @@ ASpearCharacter::ASpearCharacter()
 void ASpearCharacter::Tick(float DeltaTime)
 {
 	RecallTick(DeltaTime);
+	TickDialogueCamera(DeltaTime);
 }
 
 // BeginPlay Equivalent
@@ -93,6 +96,13 @@ void ASpearCharacter::PossessedBy(AController* NewController)
 		if (Widget)
 		{
 			Widget->AddToViewport();
+		}
+
+		DialogueUserWidget = CreateWidget<UUserWidget>(GetWorld(), DialogueWidgetBlueprint);
+		if (DialogueUserWidget)
+		{
+			DialogueUserWidget->AddToViewport();
+			DialogueUserWidget->SetVisibility(ESlateVisibility::Collapsed);
 		}
 	}
 }
@@ -125,6 +135,9 @@ void ASpearCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 
 		//Swapping Spear
 		EnhancedInputComponent->BindAction(SwapAction, ETriggerEvent::Triggered, this, &ASpearCharacter::Swap);
+
+		//Talk
+		EnhancedInputComponent->BindAction(TalkAction, ETriggerEvent::Triggered, this, &ASpearCharacter::Talk);
 	}
 }
 
@@ -215,7 +228,7 @@ void ASpearCharacter::ThrowOngoing(const FInputActionValue& Value)
 		return;
 	}
 
-	if (!CameraBoom) 
+	if (!CameraBoom)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("CameraBoom is null"));
 		return;
@@ -447,6 +460,117 @@ void ASpearCharacter::Swap(const FInputActionValue& Value)
 {
 
 }
+
+void ASpearCharacter::Talk(const FInputActionValue& Value)
+{
+	if (!DialogueUserWidget)
+		return;
+
+	TArray<AActor*> OverlappingActors;
+	GetOverlappingActors(OverlappingActors, ADialogueCharacter::StaticClass());
+
+	if (OverlappingActors.Num() == 0)
+		return;
+
+	ADialogueCharacter* CurrentDialogueCharacter = Cast<ADialogueCharacter>(OverlappingActors[0]);
+	if (!CurrentDialogueCharacter)
+		return;
+
+	if (bHasEnteredDialogue) {
+		DisplayDialogueText(CurrentDialogueCharacter);
+		return;
+	}
+
+	bHasEnteredDialogue = true;
+
+	DialogueUserWidget->SetVisibility(ESlateVisibility::Visible);
+
+// 	APlayerController* PlayerController = Cast<APlayerController>(Controller);
+// 	if (PlayerController)
+// 	{
+// 		// Disable Input
+// 		FInputModeUIOnly InputMode;
+// 		PlayerController->SetInputMode(InputMode);
+// 	}
+
+	StaringCameraTransform = FollowCamera->GetRelativeTransform();
+
+	DisplayDialogueText(CurrentDialogueCharacter);
+}
+
+
+void ASpearCharacter::DisplayDialogueText(ADialogueCharacter* CurrentDialogueCharacter)
+{
+	// If dialog is over
+	if (CurrentDialogueCharacter->SpeechTextArray.Num() == CurrentDialogueIndex) {
+		DialogueUserWidget->SetVisibility(ESlateVisibility::Visible);
+
+// 		APlayerController* PlayerController = Cast<APlayerController>(Controller);
+// 		if (PlayerController)
+// 		{
+// 			// Enable Input
+// 			FInputModeGameAndUI InputMode;
+// 			PlayerController->SetInputMode(InputMode);
+// 		}
+
+		DialogueUserWidget->SetVisibility(ESlateVisibility::Collapsed);
+
+		FollowCamera->SetRelativeTransform(StaringCameraTransform);
+
+		// Reset variables
+		bHasEnteredDialogue = false;
+		CurrentDialogueIndex = 0;
+
+		return;
+	}
+
+	FSpeechText CurrentText = CurrentDialogueCharacter->SpeechTextArray[CurrentDialogueIndex];
+	FTransform CurrentCharacterTransform = CurrentDialogueCharacter->GetActorTransform();
+
+	TargetCameraTransform = CurrentText.CameraTransform;
+	TargetCameraTransform.SetLocation(TargetCameraTransform.GetLocation() + CurrentCharacterTransform.GetLocation());
+
+	FText Dialogue = CurrentText.Dialogue;
+	UpdateDialogText(Dialogue, DialogueUserWidget);
+
+	CurrentDialogueIndex++;
+}
+
+
+void ASpearCharacter::TickDialogueCamera(float DeltaTime)
+{
+	if (!bHasEnteredDialogue)
+	{
+		return;
+	}
+
+	if (TargetCameraTransform.GetLocation().IsNearlyZero())
+	{
+		return;
+	}
+
+	// Lerp camera towards the target transform
+	FTransform CurrentCameraTransform = FollowCamera->GetComponentTransform();
+
+	// Check if the camera has reached the target within a threshold
+	float DistanceSquared = FVector::DistSquared(CurrentCameraTransform.GetLocation(), TargetCameraTransform.GetLocation());
+	if (DistanceSquared < CameraLerpThreshold * CameraLerpThreshold)
+	{
+		return;
+	}
+
+	// Interpolate location
+	FVector NewLocation = FMath::Lerp(CurrentCameraTransform.GetLocation(), TargetCameraTransform.GetLocation(), CameraLerpSpeed * DeltaTime);
+
+	// Interpolate rotation
+	FQuat NewRotation = FQuat::Slerp(CurrentCameraTransform.GetRotation(), TargetCameraTransform.GetRotation(), CameraLerpSpeed * DeltaTime);
+
+	// Construct the new camera transform
+	FTransform NewCameraTransform(NewRotation, NewLocation, FollowCamera->GetComponentScale());
+
+	FollowCamera->SetWorldTransform(NewCameraTransform);
+}
+
 
 void ASpearCharacter::PickedUpCollectible()
 {
