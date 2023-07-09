@@ -579,9 +579,5 @@ void ASpearCharacter::PickedUpCollectible()
 	}
 
 	CollectiblesPickedUp++;
-
-	if (CollectiblesPickedUp == 3) {
-
-	}
 }
 
