@@ -79,7 +79,7 @@ public:
 	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-protected:
+public:
 	virtual void PossessedBy(AController* NewController) override;
 
 	/** Called for movement input */
@@ -175,7 +175,7 @@ protected:
 public:
 	void PickedUpCollectible();
 
-protected:
+public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "G_Collectible")
 	int32 CollectiblesPickedUp = 0;
 
